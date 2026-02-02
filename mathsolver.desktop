@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MathSolver
+Comment=Offline equation solver with OCR
+Exec=bash -c "cd $(dirname %k) && source venv/bin/activate && python main.py"
+Icon=accessories-calculator
+Terminal=false
+Categories=Science;Math;Education;
+Keywords=math;equation;solver;latex;physics;

@@ -1,0 +1,45 @@
+# MathSolver Configuration
+
+# Application settings
+app:
+  name: MathSolver
+  version: 0.1.0
+  
+# OCR settings
+ocr:
+  # Confidence threshold below which to show warning
+  confidence_threshold: 0.7
+  # Auto-solve if confidence is above this
+  auto_solve_threshold: 0.8
+  
+# Screenshot settings
+screenshot:
+  # Preferred tool (auto-detect if not set)
+  # Options: gnome-screenshot, spectacle, maim, scrot
+  preferred_tool: null
+  # Temporary file location
+  temp_path: /tmp/mathsolver_capture.png
+  
+# Solver settings
+solver:
+  # Maximum time for symbolic solve (milliseconds)
+  timeout_ms: 5000
+  # Show steps by default
+  show_steps: true
+  
+# GUI settings
+gui:
+  # Window geometry
+  width: 900
+  height: 700
+  # Theme (system, light, dark)
+  theme: system
+  # Font size for equations
+  equation_font_size: 14
+  
+# History settings
+history:
+  # Maximum entries to keep
+  max_entries: 1000
+  # Database location (relative to project root)
+  db_path: data/history.db

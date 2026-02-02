@@ -1,0 +1,28 @@
+# Core dependencies
+sympy>=1.12
+numpy>=1.24.0
+scipy>=1.11.0
+Pillow>=10.0.0
+
+# OCR - pix2tex with GUI extras
+pix2tex[gui]>=0.1.2
+
+# GUI framework
+PyQt6>=6.5.0
+
+# Optional: Web rendering for MathJax (can be skipped for lighter install)
+# PyQt6-WebEngine>=6.5.0
+
+# Optional: Unit conversion
+# pint>=0.22
+
+# Optional: Better math rendering
+matplotlib>=3.7.0
+
+# Linux screenshot (X11)
+# Note: python-xlib is optional, we use system tools by default
+# python-xlib>=0.33
+
+# Development dependencies
+pytest>=7.4.0
+pytest-qt>=4.2.0

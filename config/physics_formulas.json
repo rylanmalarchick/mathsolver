@@ -1,0 +1,187 @@
+{
+  "formulas": [
+    {
+      "id": "wien_displacement",
+      "name": "Wien's Displacement Law",
+      "category": "thermodynamics",
+      "latex": "\\lambda_{max} T = b",
+      "variables": ["lambda_max", "T", "b"],
+      "constants": {
+        "b": {
+          "value": 2.897771955e-3,
+          "unit": "m·K",
+          "name": "Wien's displacement constant"
+        }
+      },
+      "description": "Relates the peak wavelength of blackbody radiation to temperature",
+      "solve_templates": {
+        "lambda_max": "b / T",
+        "T": "b / lambda_max"
+      }
+    },
+    {
+      "id": "planck_energy",
+      "name": "Planck Energy Relation",
+      "category": "quantum",
+      "latex": "E = h \\nu",
+      "variables": ["E", "h", "nu"],
+      "constants": {
+        "h": {
+          "value": 6.62607015e-34,
+          "unit": "J·s",
+          "name": "Planck constant"
+        }
+      },
+      "description": "Energy of a photon in terms of frequency",
+      "solve_templates": {
+        "E": "h * nu",
+        "nu": "E / h"
+      }
+    },
+    {
+      "id": "einstein_mass_energy",
+      "name": "Mass-Energy Equivalence",
+      "category": "relativity",
+      "latex": "E = m c^2",
+      "variables": ["E", "m", "c"],
+      "constants": {
+        "c": {
+          "value": 299792458,
+          "unit": "m/s",
+          "name": "Speed of light"
+        }
+      },
+      "description": "Einstein's famous equation relating mass and energy",
+      "solve_templates": {
+        "E": "m * c**2",
+        "m": "E / c**2"
+      }
+    },
+    {
+      "id": "de_broglie",
+      "name": "de Broglie Wavelength",
+      "category": "quantum",
+      "latex": "\\lambda = \\frac{h}{p}",
+      "variables": ["lambda", "h", "p"],
+      "constants": {
+        "h": {
+          "value": 6.62607015e-34,
+          "unit": "J·s",
+          "name": "Planck constant"
+        }
+      },
+      "description": "Wavelength of a particle with momentum p",
+      "solve_templates": {
+        "lambda": "h / p",
+        "p": "h / lambda"
+      }
+    },
+    {
+      "id": "kinematic_v",
+      "name": "Kinematic Equation (velocity)",
+      "category": "mechanics",
+      "latex": "v = v_0 + a t",
+      "variables": ["v", "v_0", "a", "t"],
+      "constants": {},
+      "description": "Final velocity from initial velocity, acceleration, and time",
+      "solve_templates": {
+        "v": "v_0 + a * t",
+        "v_0": "v - a * t",
+        "a": "(v - v_0) / t",
+        "t": "(v - v_0) / a"
+      }
+    },
+    {
+      "id": "kinematic_x",
+      "name": "Kinematic Equation (position)",
+      "category": "mechanics",
+      "latex": "x = x_0 + v_0 t + \\frac{1}{2} a t^2",
+      "variables": ["x", "x_0", "v_0", "t", "a"],
+      "constants": {},
+      "description": "Position from initial conditions and constant acceleration"
+    },
+    {
+      "id": "kinematic_v2",
+      "name": "Kinematic Equation (velocity squared)",
+      "category": "mechanics",
+      "latex": "v^2 = v_0^2 + 2 a (x - x_0)",
+      "variables": ["v", "v_0", "a", "x", "x_0"],
+      "constants": {},
+      "description": "Velocity squared relation (no time)"
+    },
+    {
+      "id": "snell_law",
+      "name": "Snell's Law",
+      "category": "optics",
+      "latex": "n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2",
+      "variables": ["n_1", "theta_1", "n_2", "theta_2"],
+      "constants": {},
+      "description": "Law of refraction at interface between media"
+    },
+    {
+      "id": "thin_lens",
+      "name": "Thin Lens Equation",
+      "category": "optics",
+      "latex": "\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}",
+      "variables": ["f", "d_o", "d_i"],
+      "constants": {},
+      "description": "Relates focal length to object and image distances"
+    },
+    {
+      "id": "ideal_gas",
+      "name": "Ideal Gas Law",
+      "category": "thermodynamics",
+      "latex": "P V = n R T",
+      "variables": ["P", "V", "n", "R", "T"],
+      "constants": {
+        "R": {
+          "value": 8.314462618,
+          "unit": "J/(mol·K)",
+          "name": "Gas constant"
+        }
+      },
+      "description": "Equation of state for ideal gas"
+    },
+    {
+      "id": "coulomb_law",
+      "name": "Coulomb's Law",
+      "category": "electromagnetism",
+      "latex": "F = k_e \\frac{q_1 q_2}{r^2}",
+      "variables": ["F", "k_e", "q_1", "q_2", "r"],
+      "constants": {
+        "k_e": {
+          "value": 8.9875517923e9,
+          "unit": "N·m²/C²",
+          "name": "Coulomb constant"
+        }
+      },
+      "description": "Force between two point charges"
+    },
+    {
+      "id": "ohm_law",
+      "name": "Ohm's Law",
+      "category": "electromagnetism",
+      "latex": "V = I R",
+      "variables": ["V", "I", "R"],
+      "constants": {},
+      "description": "Voltage equals current times resistance"
+    },
+    {
+      "id": "stefan_boltzmann",
+      "name": "Stefan-Boltzmann Law",
+      "category": "thermodynamics",
+      "latex": "P = \\sigma A T^4",
+      "variables": ["P", "sigma", "A", "T"],
+      "constants": {
+        "sigma": {
+          "value": 5.670374419e-8,
+          "unit": "W/(m²·K⁴)",
+          "name": "Stefan-Boltzmann constant"
+        }
+      },
+      "description": "Power radiated by a blackbody"
+    }
+  ],
+  "version": "1.0",
+  "description": "Physics formula database for MathSolver pattern matching"
+}
