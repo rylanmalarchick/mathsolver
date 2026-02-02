@@ -124,13 +124,34 @@ class EquationClassifier:
         return None
 
     def _check_differential(self, expr: sp.Basic) -> Optional[str]:
-        """Check for differential equations."""
+        """
+        Check for differential equations.
+
+        A differential equation involves derivatives of a function (like y(x)).
+        A bare derivative expression of a simple expression (like d/dx(x^3))
+        is a calculus operation, not an ODE.
+        """
         if not expr.has(Derivative):
             return None
 
         # Get all derivatives in expression
         derivatives = list(expr.atoms(Derivative))
         if not derivatives:
+            return None
+
+        # Check if any derivative involves a function (like y(x), f(t), etc.)
+        # If so, it's an ODE. If all derivatives are of plain symbols/expressions, it's calculus.
+        has_function_derivative = False
+        for deriv in derivatives:
+            # The first argument is what's being differentiated
+            diff_expr = deriv.args[0]
+            # Check if it's an applied function (like y(x))
+            if isinstance(diff_expr, sp.core.function.AppliedUndef):
+                has_function_derivative = True
+                break
+
+        if not has_function_derivative:
+            # This is a calculus derivative (like d/dx(x^3)), not an ODE
             return None
 
         # Determine order (highest derivative order)
@@ -152,7 +173,11 @@ class EquationClassifier:
             return f"ode_order_{max_order}"
 
     def _check_calculus(self, expr: sp.Basic) -> Optional[str]:
-        """Check for calculus operations (integrals, limits)."""
+        """Check for calculus operations (derivatives, integrals, limits)."""
+        # Check for derivative expressions (to be computed, not ODEs)
+        if expr.has(Derivative):
+            return "derivative"
+
         if expr.has(Integral):
             # Check if definite or indefinite
             integrals = list(expr.atoms(Integral))

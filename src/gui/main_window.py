@@ -25,6 +25,8 @@ from PyQt6.QtWidgets import (
     QProgressBar,
     QSplitter,
     QFrame,
+    QFileDialog,
+    QMenu,
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction, QFont, QClipboard
@@ -302,6 +304,11 @@ class MainWindow(QMainWindow):
         copy_python_btn = QPushButton("Copy Python")
         copy_python_btn.clicked.connect(self._on_copy_python)
         layout.addWidget(copy_python_btn)
+
+        # Export dropdown button
+        export_btn = QPushButton("Export...")
+        export_btn.clicked.connect(self._on_export_clicked)
+        layout.addWidget(export_btn)
 
         layout.addStretch()
 
@@ -809,16 +816,108 @@ class MainWindow(QMainWindow):
 
     def _on_copy_python(self):
         """Copy solution as Python/SymPy code."""
-        if self._current_solution:
-            import sympy as sp
+        if not self._current_solution:
+            self.statusBar().showMessage("No solution to copy")
+            return
 
-            code = f"# {self._current_solution.latex}\n"
-            code += f"from sympy import *\n"
-            code += f"result = {repr(self._current_solution.symbolic_result)}"
+        from ..output.exporter import SolutionExporter, ExportOptions
 
-            clipboard = QApplication.clipboard()
-            clipboard.setText(code)
-            self.statusBar().showMessage("Python code copied to clipboard")
+        options = ExportOptions(
+            include_steps=True,
+            include_timestamp=False,
+            include_method=False,
+        )
+        exporter = SolutionExporter(self._current_solution, options)
+        code = exporter.to_python()
+
+        clipboard = QApplication.clipboard()
+        clipboard.setText(code)
+        self.statusBar().showMessage("Python code copied to clipboard")
+
+    def _on_export_clicked(self):
+        """Handle export button click - show export menu."""
+        if not self._current_solution:
+            self.statusBar().showMessage("No solution to export")
+            return
+
+        # Create export menu
+        menu = QMenu(self)
+
+        # Export options
+        export_latex_action = menu.addAction("Export as LaTeX (.tex)")
+        export_python_action = menu.addAction("Export as Python (.py)")
+        export_text_action = menu.addAction("Export as Text (.txt)")
+        menu.addSeparator()
+        export_pdf_action = menu.addAction("Export as PDF (.pdf)")
+
+        # Get the button that triggered this
+        sender = self.sender()
+        if sender:
+            # Show menu below the button
+            action = menu.exec(sender.mapToGlobal(sender.rect().bottomLeft()))
+
+            if action == export_latex_action:
+                self._export_to_file("latex")
+            elif action == export_python_action:
+                self._export_to_file("python")
+            elif action == export_text_action:
+                self._export_to_file("text")
+            elif action == export_pdf_action:
+                self._export_to_file("pdf")
+
+    def _export_to_file(self, format_type: str):
+        """Export solution to a file."""
+        from ..output.exporter import SolutionExporter, ExportOptions
+        from ..utils.errors import ExportError
+
+        if not self._current_solution:
+            return
+
+        # File type filters
+        filters = {
+            "latex": "LaTeX Files (*.tex);;All Files (*)",
+            "python": "Python Files (*.py);;All Files (*)",
+            "text": "Text Files (*.txt);;All Files (*)",
+            "pdf": "PDF Files (*.pdf);;All Files (*)",
+        }
+
+        # Default extensions
+        extensions = {
+            "latex": ".tex",
+            "python": ".py",
+            "text": ".txt",
+            "pdf": ".pdf",
+        }
+
+        # Show save dialog
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            f"Export as {format_type.upper()}",
+            f"solution{extensions[format_type]}",
+            filters[format_type],
+        )
+
+        if not file_path:
+            return  # User cancelled
+
+        try:
+            exporter = SolutionExporter(self._current_solution)
+
+            if format_type == "latex":
+                exporter.to_latex(file_path)
+            elif format_type == "python":
+                exporter.to_python(file_path)
+            elif format_type == "text":
+                exporter.to_text(file_path)
+            elif format_type == "pdf":
+                exporter.to_pdf(file_path)
+
+            self.statusBar().showMessage(f"Exported to {file_path}")
+
+        except ExportError as e:
+            self._show_error(e, f"exporting to {format_type}")
+        except Exception as e:
+            self._show_error(e, f"exporting to {format_type}")
 
     def _on_new_clicked(self):
         """Clear current equation and start fresh."""

@@ -173,18 +173,49 @@ class LatexParser:
             convert_xor,
         )
 
+        # Create local dict to prevent reserved names from being interpreted as constants
+        # This allows 'E' to be a symbol instead of Euler's number, 'I' as a symbol not sqrt(-1), etc.
+        # We identify single uppercase letters and common physics variable names
+        local_dict = {}
+
+        # Find all potential variable names (letters and letter combinations)
+        import re
+
+        potential_vars = set(re.findall(r"\b([A-Za-z][A-Za-z0-9_]*)\b", text))
+
+        # Reserved SymPy names that should become symbols in physics context
+        reserved_names = {
+            "E",
+            "I",
+            "N",
+            "S",
+            "O",
+            "Q",
+            "C",
+        }  # Common physics vars that conflict
+
+        for var in potential_vars:
+            if var in reserved_names or (len(var) == 1 and var.isupper()):
+                local_dict[var] = sp.Symbol(var)
+
         # Handle equation format "lhs = rhs"
         if "=" in text and text.count("=") == 1:
             lhs, rhs = text.split("=")
             try:
-                lhs_expr = parse_expr(lhs.strip(), transformations=transformations)
-                rhs_expr = parse_expr(rhs.strip(), transformations=transformations)
+                lhs_expr = parse_expr(
+                    lhs.strip(), local_dict=local_dict, transformations=transformations
+                )
+                rhs_expr = parse_expr(
+                    rhs.strip(), local_dict=local_dict, transformations=transformations
+                )
                 expr = sp.Eq(lhs_expr, rhs_expr)
             except Exception as e:
                 raise ParseError(f"Failed to parse plain text: {e}", latex=text)
         else:
             try:
-                expr = parse_expr(text.strip(), transformations=transformations)
+                expr = parse_expr(
+                    text.strip(), local_dict=local_dict, transformations=transformations
+                )
             except Exception as e:
                 raise ParseError(f"Failed to parse plain text: {e}", latex=text)
 

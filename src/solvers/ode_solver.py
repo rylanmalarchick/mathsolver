@@ -70,8 +70,9 @@ class ODESolver(BaseSolver):
         """
         Check if equation is an ODE.
 
-        Returns True if expression contains Derivative with respect
-        to a single independent variable.
+        Returns True if expression contains Derivative of a function
+        (like y(x)) with respect to a single independent variable.
+        Plain derivative expressions like d/dx(x^3) should go to CalculusSolver.
         """
         expr = equation.sympy_expr
 
@@ -84,14 +85,23 @@ class ODESolver(BaseSolver):
         if not derivatives:
             return False
 
-        # Check that it's an ODE (single independent variable)
+        # Check that at least one derivative is of a function (like y(x))
+        # not just a plain expression (like x^3)
+        has_function_derivative = False
         indep_vars = set()
+
         for deriv in derivatives:
+            # The first argument is what's being differentiated
+            diff_expr = deriv.args[0]
+            # Check if it's an applied function (like y(x))
+            if isinstance(diff_expr, sp.core.function.AppliedUndef):
+                has_function_derivative = True
+
             for var, _ in deriv.variable_count:
                 indep_vars.add(var)
 
-        # ODE has exactly one independent variable
-        return len(indep_vars) == 1
+        # Must have a function derivative and single independent variable
+        return has_function_derivative and len(indep_vars) == 1
 
     def solve(self, request: SolveRequest) -> SolverResult:
         """

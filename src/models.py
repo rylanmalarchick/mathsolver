@@ -83,9 +83,22 @@ class Solution:
     @property
     def latex(self) -> str:
         """Get LaTeX representation of the solution."""
+        result = self.symbolic_result
+
+        # Handle list of solutions (e.g., from x^2 - 4 = 0 -> [-2, 2])
+        if isinstance(result, (list, tuple)):
+            if len(result) == 1:
+                result = result[0]
+            else:
+                # Multiple solutions: x = -2 or x = 2
+                if self.target_variable:
+                    parts = [sp.latex(sp.Eq(self.target_variable, r)) for r in result]
+                    return " \\text{ or } ".join(parts)
+                return ", ".join(sp.latex(r) for r in result)
+
         if self.target_variable:
-            return sp.latex(sp.Eq(self.target_variable, self.symbolic_result))
-        return sp.latex(self.symbolic_result)
+            return sp.latex(sp.Eq(self.target_variable, result))
+        return sp.latex(result)
 
 
 @dataclass
