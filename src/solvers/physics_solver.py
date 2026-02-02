@@ -308,21 +308,46 @@ class PhysicsSolver(BaseSolver):
         try:
             subs_dict = {}
 
-            # Add physical constants
+            # Get actual symbols from the expression
+            expr_symbols = {str(s): s for s in solution_expr.free_symbols}
+
+            # Add physical constants - use actual symbols from expression
             for const_name, const_info in formula.constants.items():
-                const_sym = Symbol(const_name)
-                subs_dict[const_sym] = const_info["value"]
+                # Always use the actual symbol from the expression if available
+                if const_name in expr_symbols:
+                    subs_dict[expr_symbols[const_name]] = const_info["value"]
+                else:
+                    # Fallback: try mapped symbol or create new
+                    for template_sym, user_sym in match.variable_mapping.items():
+                        if str(template_sym) == const_name:
+                            subs_dict[user_sym] = const_info["value"]
+                            break
+                    else:
+                        const_sym = Symbol(const_name)
+                        subs_dict[const_sym] = const_info["value"]
 
             # Add user-provided values (map to template variables if needed)
-            for user_sym, value in user_values.items():
-                # Check if this maps to a template variable
-                for template_sym, mapped_sym in match.variable_mapping.items():
-                    if str(mapped_sym) == str(user_sym):
-                        subs_dict[template_sym] = value
-                        break
-                else:
-                    # Direct substitution
-                    subs_dict[user_sym] = value
+            if user_values:
+                for user_sym, value in user_values.items():
+                    # Check if this maps to a template variable
+                    mapped = False
+                    for template_sym, mapped_sym in match.variable_mapping.items():
+                        if str(mapped_sym) == str(user_sym):
+                            # Use the actual symbol from the expression
+                            sym_name = str(mapped_sym)
+                            if sym_name in expr_symbols:
+                                subs_dict[expr_symbols[sym_name]] = value
+                            else:
+                                subs_dict[mapped_sym] = value
+                            mapped = True
+                            break
+                    if not mapped:
+                        # Direct substitution - find in expression
+                        sym_name = str(user_sym)
+                        if sym_name in expr_symbols:
+                            subs_dict[expr_symbols[sym_name]] = value
+                        else:
+                            subs_dict[user_sym] = value
 
             # Evaluate
             result = solution_expr.subs(subs_dict).evalf()

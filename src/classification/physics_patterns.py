@@ -232,33 +232,106 @@ class PhysicsPatternLibrary:
         match_result = expr_normalized.match(pattern)
 
         if match_result is not None:
-            # Verify that the match makes sense
-            var_mapping = {
-                Symbol(name): match_result.get(wild, Symbol(name))
-                for name, wild in wild_symbols.items()
-            }
-
-            return PatternMatch(
-                formula=formula,
-                confidence=0.95,
-                variable_mapping=var_mapping,
-                matched_structure=True,
+            confidence, var_mapping = self._score_wild_match(
+                match_result, wild_symbols, expr, formula
             )
+            if confidence >= 0.7:
+                return PatternMatch(
+                    formula=formula,
+                    confidence=confidence,
+                    variable_mapping=var_mapping,
+                    matched_structure=True,
+                )
 
         # Try matching negative form (pattern might be lhs - rhs = 0)
         match_result = (-expr_normalized).match(pattern)
         if match_result is not None:
-            var_mapping = {
-                Symbol(name): match_result.get(wild, Symbol(name))
-                for name, wild in wild_symbols.items()
-            }
-
-            return PatternMatch(
-                formula=formula,
-                confidence=0.90,
-                variable_mapping=var_mapping,
-                matched_structure=True,
+            confidence, var_mapping = self._score_wild_match(
+                match_result, wild_symbols, expr, formula
             )
+            # Slight penalty for negative form
+            confidence *= 0.95
+            if confidence >= 0.7:
+                return PatternMatch(
+                    formula=formula,
+                    confidence=confidence,
+                    variable_mapping=var_mapping,
+                    matched_structure=True,
+                )
+
+        return None
+
+    def _score_wild_match(
+        self,
+        match_result: dict,
+        wild_symbols: dict,
+        expr: sp.Basic,
+        formula: PhysicsFormula,
+    ) -> Tuple[float, Dict[Symbol, sp.Basic]]:
+        """
+        Score a Wild pattern match based on quality criteria.
+
+        Returns (confidence, variable_mapping).
+        """
+        var_mapping = {
+            Symbol(name): match_result.get(wild, Symbol(name))
+            for name, wild in wild_symbols.items()
+        }
+
+        # Start with base confidence
+        confidence = 0.80
+
+        # Get expression symbol names
+        expr_symbol_names = {str(s) for s in expr.free_symbols if isinstance(s, Symbol)}
+        formula_symbols = set(formula.variables) | set(formula.constants.keys())
+
+        # Criterion 1: Penalize matches where wilds matched complex expressions
+        # (e.g., 1/m instead of a simple symbol)
+        complex_match_penalty = 0.0
+        simple_matches = 0
+        total_wilds = len(wild_symbols)
+
+        for name, wild in wild_symbols.items():
+            matched_value = match_result.get(wild)
+            if matched_value is not None:
+                # Check if matched value is a simple symbol or a complex expression
+                if isinstance(matched_value, Symbol):
+                    simple_matches += 1
+                elif matched_value.is_number:
+                    # Numbers are okay but penalize slightly (except for 1)
+                    if matched_value == 1:
+                        simple_matches += 0.5  # Half credit for matching to 1
+                    else:
+                        complex_match_penalty += 0.08
+                else:
+                    # Complex expression with free symbols - heavy penalty
+                    if matched_value.free_symbols:
+                        complex_match_penalty += 0.20
+                    else:
+                        complex_match_penalty += 0.05
+
+        confidence -= complex_match_penalty
+
+        # Also penalize if most wilds didn't match to simple symbols
+        simple_ratio = simple_matches / max(total_wilds, 1)
+        if simple_ratio < 0.5:
+            confidence -= 0.15  # Penalty for too many complex matches
+
+        # Criterion 2: Boost for matching variable names
+        # Count how many expression symbols match formula variable names
+        matching_names = expr_symbol_names & formula_symbols
+        if matching_names:
+            match_ratio = len(matching_names) / max(len(formula_symbols), 1)
+            confidence += 0.15 * match_ratio
+
+        # Criterion 3: Perfect symbol count match bonus
+        if len(expr_symbol_names) == len(formula_symbols):
+            # Same number of symbols
+            if matching_names == expr_symbol_names:
+                # AND all names match - very high confidence
+                confidence += 0.10
+
+        return confidence, var_mapping
 
         return None
 
@@ -268,14 +341,24 @@ class PhysicsPatternLibrary:
         """
         Match based on structural similarity.
 
-        Compares:
-        - Number of free symbols
-        - Types of operations (Add, Mul, Pow, etc.)
-        - Expression depth
+        This is a fallback for cases where Wild matching fails but
+        the expression structure is very similar.
+
+        STRICT: Requires matching variable names to avoid false positives.
         """
         # Normalize expressions
         if isinstance(expr, Eq):
             expr = expr.lhs - expr.rhs
+
+        # Get expression symbol names
+        expr_symbol_names = {str(s) for s in expr.free_symbols if isinstance(s, Symbol)}
+        formula_symbols = set(formula.variables) | set(formula.constants.keys())
+
+        # CRITICAL: Require at least one variable name match for structural matching
+        # This prevents matching arbitrary expressions like x+y=z to physics formulas
+        matching_names = expr_symbol_names & formula_symbols
+        if not matching_names:
+            return None  # No name overlap = no structural match
 
         # Get structural features
         expr_ops = self._get_operations(expr)
@@ -289,16 +372,19 @@ class PhysicsPatternLibrary:
         template_vars = len(formula.variables) + len(formula.constants)
         var_ratio = min(expr_vars, template_vars) / max(expr_vars, template_vars, 1)
 
-        # Combined confidence
-        confidence = op_similarity * 0.6 + var_ratio * 0.4
+        # Name match ratio bonus
+        name_match_ratio = len(matching_names) / max(len(formula_symbols), 1)
 
-        if confidence >= 0.7:
+        # Combined confidence - heavily weight name matching
+        base_confidence = op_similarity * 0.3 + var_ratio * 0.2 + name_match_ratio * 0.5
+
+        if base_confidence >= 0.7:
             # Attempt variable mapping heuristically
             var_mapping = self._heuristic_var_mapping(expr, formula)
 
             return PatternMatch(
                 formula=formula,
-                confidence=confidence,
+                confidence=base_confidence,
                 variable_mapping=var_mapping,
                 matched_structure=False,
             )

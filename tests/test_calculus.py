@@ -478,8 +478,12 @@ class TestMathJaxRenderer:
 
         # Should only have the final step
         assert "Step 3" in html
-        # Step 1 and 2 should not be present
-        assert html.count("step-") == 1
+        # Step 1 and 2 should not be rendered as step divs
+        # Count actual step div elements (id="step-N")
+        import re
+
+        step_divs = re.findall(r'id="step-\d+"', html)
+        assert len(step_divs) == 1
 
 
 class TestClassifierIntegration:

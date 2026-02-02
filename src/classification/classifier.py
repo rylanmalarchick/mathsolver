@@ -201,14 +201,23 @@ class EquationClassifier:
         if not symbols:
             return None
 
-        # Check if polynomial in any variable
+        # Check if polynomial in any variable using is_polynomial method
         for sym in symbols:
             try:
-                poly = sp.Poly(combined, sym)
-                degree = poly.degree()
-                if degree >= 1:
-                    return f"degree_{degree}"
-            except (sp.PolynomialError, sp.GeneratorsNeeded):
+                if combined.is_polynomial(sym):
+                    # Get degree by reparsing the expression (handles nested Add issues)
+                    try:
+                        from sympy import sympify
+
+                        reparsed = sympify(str(combined))
+                        poly = sp.Poly(reparsed, sym)
+                        degree = poly.degree()
+                        if degree >= 1:
+                            return f"degree_{degree}"
+                    except (sp.PolynomialError, sp.GeneratorsNeeded):
+                        # If Poly fails, use a heuristic based on expression depth
+                        return "degree_unknown"
+            except Exception:
                 continue
 
         return None

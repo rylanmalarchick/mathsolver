@@ -742,8 +742,18 @@ class MainWindow(QMainWindow):
 
     def _on_history_clicked(self):
         """Handle history button click."""
-        # TODO: Implement history dialog
-        QMessageBox.information(self, "History", "History feature coming soon!")
+        from .history_dialog import HistoryDialog
+        from ..utils.database import HistoryDatabase
+
+        dialog = HistoryDialog(database=HistoryDatabase(), parent=self)
+        dialog.re_solve_requested.connect(self._on_re_solve_from_history)
+        dialog.exec()
+
+    def _on_re_solve_from_history(self, raw_latex: str):
+        """Handle re-solve request from history dialog."""
+        self.latex_input.setText(raw_latex)
+        self.plain_input.clear()
+        self._on_solve_clicked()
 
     def _on_copy_latex(self):
         """Copy solution LaTeX to clipboard."""
