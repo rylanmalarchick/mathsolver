@@ -10,8 +10,8 @@ pix2tex[gui]>=0.1.2
 # GUI framework
 PyQt6>=6.5.0
 
-# Optional: Web rendering for MathJax (can be skipped for lighter install)
-# PyQt6-WebEngine>=6.5.0
+# Optional: Web rendering for MathJax (recommended for best math display)
+PyQt6-WebEngine>=6.5.0
 
 # Optional: Unit conversion
 pint>=0.22
