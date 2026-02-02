@@ -14,7 +14,7 @@ PyQt6>=6.5.0
 # PyQt6-WebEngine>=6.5.0
 
 # Optional: Unit conversion
-# pint>=0.22
+pint>=0.22
 
 # Optional: Better math rendering
 matplotlib>=3.7.0

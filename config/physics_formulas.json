@@ -1,88 +1,164 @@
 {
+  "version": "2.0",
+  "description": "Physics formula database for MathSolver pattern matching",
   "formulas": [
     {
       "id": "wien_displacement",
       "name": "Wien's Displacement Law",
       "category": "thermodynamics",
+      "subcategory": "blackbody",
       "latex": "\\lambda_{max} T = b",
-      "variables": ["lambda_max", "T", "b"],
+      "sympy_template": "lambda_max * T - b",
+      "variables": ["lambda_max", "T"],
       "constants": {
-        "b": {
-          "value": 2.897771955e-3,
-          "unit": "m·K",
-          "name": "Wien's displacement constant"
-        }
+        "b": {"value": 2.897771955e-3, "unit": "m*K", "name": "Wien's displacement constant"}
       },
-      "description": "Relates the peak wavelength of blackbody radiation to temperature",
+      "units": {"lambda_max": "m", "T": "K"},
+      "description": "Relates peak wavelength of blackbody radiation to temperature",
       "solve_templates": {
         "lambda_max": "b / T",
         "T": "b / lambda_max"
+      },
+      "steps": {
+        "lambda_max": ["Starting with Wien's Law: λ_max · T = b", "Divide both sides by T", "λ_max = b / T"],
+        "T": ["Starting with Wien's Law: λ_max · T = b", "Divide both sides by λ_max", "T = b / λ_max"]
       }
     },
     {
       "id": "planck_energy",
       "name": "Planck Energy Relation",
       "category": "quantum",
+      "subcategory": "photon",
       "latex": "E = h \\nu",
-      "variables": ["E", "h", "nu"],
+      "sympy_template": "E - h * nu",
+      "variables": ["E", "nu"],
       "constants": {
-        "h": {
-          "value": 6.62607015e-34,
-          "unit": "J·s",
-          "name": "Planck constant"
-        }
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"}
       },
+      "units": {"E": "J", "nu": "Hz"},
       "description": "Energy of a photon in terms of frequency",
-      "solve_templates": {
-        "E": "h * nu",
-        "nu": "E / h"
-      }
+      "solve_templates": {"E": "h * nu", "nu": "E / h", "h": "E / nu"}
+    },
+    {
+      "id": "planck_wavelength",
+      "name": "Planck Energy (wavelength form)",
+      "category": "quantum",
+      "subcategory": "photon",
+      "latex": "E = \\frac{h c}{\\lambda}",
+      "sympy_template": "E - h * c / lambda",
+      "variables": ["E", "lambda"],
+      "constants": {
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"},
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
+      },
+      "units": {"E": "J", "lambda": "m"},
+      "description": "Photon energy in terms of wavelength",
+      "solve_templates": {"E": "h * c / lambda", "lambda": "h * c / E"}
     },
     {
       "id": "einstein_mass_energy",
       "name": "Mass-Energy Equivalence",
       "category": "relativity",
+      "subcategory": "special",
       "latex": "E = m c^2",
-      "variables": ["E", "m", "c"],
+      "sympy_template": "E - m * c**2",
+      "variables": ["E", "m"],
       "constants": {
-        "c": {
-          "value": 299792458,
-          "unit": "m/s",
-          "name": "Speed of light"
-        }
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
       },
+      "units": {"E": "J", "m": "kg"},
       "description": "Einstein's famous equation relating mass and energy",
+      "solve_templates": {"E": "m * c**2", "m": "E / c**2"}
+    },
+    {
+      "id": "energy_momentum_relativistic",
+      "name": "Relativistic Energy-Momentum",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "E^2 = (pc)^2 + (mc^2)^2",
+      "sympy_template": "E**2 - (p*c)**2 - (m*c**2)**2",
+      "variables": ["E", "p", "m"],
+      "constants": {
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
+      },
+      "units": {"E": "J", "p": "kg*m/s", "m": "kg"},
+      "description": "Full relativistic energy-momentum relation",
       "solve_templates": {
-        "E": "m * c**2",
-        "m": "E / c**2"
+        "E": "sqrt((p*c)**2 + (m*c**2)**2)",
+        "p": "sqrt(E**2 - (m*c**2)**2) / c",
+        "m": "sqrt(E**2 - (p*c)**2) / c**2"
       }
     },
     {
       "id": "de_broglie",
       "name": "de Broglie Wavelength",
       "category": "quantum",
+      "subcategory": "matter_waves",
       "latex": "\\lambda = \\frac{h}{p}",
-      "variables": ["lambda", "h", "p"],
+      "sympy_template": "lambda - h / p",
+      "variables": ["lambda", "p"],
       "constants": {
-        "h": {
-          "value": 6.62607015e-34,
-          "unit": "J·s",
-          "name": "Planck constant"
-        }
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"}
       },
+      "units": {"lambda": "m", "p": "kg*m/s"},
       "description": "Wavelength of a particle with momentum p",
-      "solve_templates": {
-        "lambda": "h / p",
-        "p": "h / lambda"
-      }
+      "solve_templates": {"lambda": "h / p", "p": "h / lambda"}
+    },
+    {
+      "id": "de_broglie_velocity",
+      "name": "de Broglie Wavelength (velocity form)",
+      "category": "quantum",
+      "subcategory": "matter_waves",
+      "latex": "\\lambda = \\frac{h}{m v}",
+      "sympy_template": "lambda - h / (m * v)",
+      "variables": ["lambda", "m", "v"],
+      "constants": {
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"}
+      },
+      "units": {"lambda": "m", "m": "kg", "v": "m/s"},
+      "description": "de Broglie wavelength using mass and velocity",
+      "solve_templates": {"lambda": "h / (m * v)", "m": "h / (lambda * v)", "v": "h / (lambda * m)"}
+    },
+    {
+      "id": "heisenberg_position_momentum",
+      "name": "Heisenberg Uncertainty (position-momentum)",
+      "category": "quantum",
+      "subcategory": "uncertainty",
+      "latex": "\\Delta x \\Delta p \\geq \\frac{\\hbar}{2}",
+      "sympy_template": "Delta_x * Delta_p - hbar / 2",
+      "variables": ["Delta_x", "Delta_p"],
+      "constants": {
+        "hbar": {"value": 1.054571817e-34, "unit": "J*s", "name": "Reduced Planck constant"}
+      },
+      "units": {"Delta_x": "m", "Delta_p": "kg*m/s"},
+      "description": "Heisenberg uncertainty principle for position and momentum",
+      "solve_templates": {"Delta_x": "hbar / (2 * Delta_p)", "Delta_p": "hbar / (2 * Delta_x)"}
+    },
+    {
+      "id": "heisenberg_energy_time",
+      "name": "Heisenberg Uncertainty (energy-time)",
+      "category": "quantum",
+      "subcategory": "uncertainty",
+      "latex": "\\Delta E \\Delta t \\geq \\frac{\\hbar}{2}",
+      "sympy_template": "Delta_E * Delta_t - hbar / 2",
+      "variables": ["Delta_E", "Delta_t"],
+      "constants": {
+        "hbar": {"value": 1.054571817e-34, "unit": "J*s", "name": "Reduced Planck constant"}
+      },
+      "units": {"Delta_E": "J", "Delta_t": "s"},
+      "description": "Heisenberg uncertainty principle for energy and time",
+      "solve_templates": {"Delta_E": "hbar / (2 * Delta_t)", "Delta_t": "hbar / (2 * Delta_E)"}
     },
     {
       "id": "kinematic_v",
-      "name": "Kinematic Equation (velocity)",
+      "name": "Kinematic Equation (velocity-time)",
       "category": "mechanics",
+      "subcategory": "kinematics",
       "latex": "v = v_0 + a t",
+      "sympy_template": "v - v_0 - a * t",
       "variables": ["v", "v_0", "a", "t"],
       "constants": {},
+      "units": {"v": "m/s", "v_0": "m/s", "a": "m/s**2", "t": "s"},
       "description": "Final velocity from initial velocity, acceleration, and time",
       "solve_templates": {
         "v": "v_0 + a * t",
@@ -93,95 +169,818 @@
     },
     {
       "id": "kinematic_x",
-      "name": "Kinematic Equation (position)",
+      "name": "Kinematic Equation (position-time)",
       "category": "mechanics",
+      "subcategory": "kinematics",
       "latex": "x = x_0 + v_0 t + \\frac{1}{2} a t^2",
+      "sympy_template": "x - x_0 - v_0 * t - a * t**2 / 2",
       "variables": ["x", "x_0", "v_0", "t", "a"],
       "constants": {},
-      "description": "Position from initial conditions and constant acceleration"
+      "units": {"x": "m", "x_0": "m", "v_0": "m/s", "t": "s", "a": "m/s**2"},
+      "description": "Position from initial conditions and constant acceleration",
+      "solve_templates": {
+        "x": "x_0 + v_0 * t + a * t**2 / 2",
+        "x_0": "x - v_0 * t - a * t**2 / 2"
+      }
     },
     {
       "id": "kinematic_v2",
-      "name": "Kinematic Equation (velocity squared)",
+      "name": "Kinematic Equation (velocity-displacement)",
       "category": "mechanics",
+      "subcategory": "kinematics",
       "latex": "v^2 = v_0^2 + 2 a (x - x_0)",
+      "sympy_template": "v**2 - v_0**2 - 2 * a * (x - x_0)",
       "variables": ["v", "v_0", "a", "x", "x_0"],
       "constants": {},
-      "description": "Velocity squared relation (no time)"
+      "units": {"v": "m/s", "v_0": "m/s", "a": "m/s**2", "x": "m", "x_0": "m"},
+      "description": "Velocity squared relation without time",
+      "solve_templates": {
+        "v": "sqrt(v_0**2 + 2 * a * (x - x_0))",
+        "a": "(v**2 - v_0**2) / (2 * (x - x_0))"
+      }
+    },
+    {
+      "id": "kinematic_x_avg",
+      "name": "Kinematic Equation (average velocity)",
+      "category": "mechanics",
+      "subcategory": "kinematics",
+      "latex": "x - x_0 = \\frac{v + v_0}{2} t",
+      "sympy_template": "x - x_0 - (v + v_0) * t / 2",
+      "variables": ["x", "x_0", "v", "v_0", "t"],
+      "constants": {},
+      "units": {"x": "m", "x_0": "m", "v": "m/s", "v_0": "m/s", "t": "s"},
+      "description": "Displacement using average velocity"
+    },
+    {
+      "id": "newton_second_law",
+      "name": "Newton's Second Law",
+      "category": "mechanics",
+      "subcategory": "dynamics",
+      "latex": "F = m a",
+      "sympy_template": "F - m * a",
+      "variables": ["F", "m", "a"],
+      "constants": {},
+      "units": {"F": "N", "m": "kg", "a": "m/s**2"},
+      "description": "Force equals mass times acceleration",
+      "solve_templates": {"F": "m * a", "m": "F / a", "a": "F / m"}
+    },
+    {
+      "id": "weight",
+      "name": "Weight",
+      "category": "mechanics",
+      "subcategory": "dynamics",
+      "latex": "W = m g",
+      "sympy_template": "W - m * g",
+      "variables": ["W", "m"],
+      "constants": {
+        "g": {"value": 9.80665, "unit": "m/s**2", "name": "Standard gravity"}
+      },
+      "units": {"W": "N", "m": "kg"},
+      "description": "Weight force due to gravity",
+      "solve_templates": {"W": "m * g", "m": "W / g"}
+    },
+    {
+      "id": "gravitational_force",
+      "name": "Newton's Law of Gravitation",
+      "category": "mechanics",
+      "subcategory": "gravity",
+      "latex": "F = G \\frac{m_1 m_2}{r^2}",
+      "sympy_template": "F - G * m_1 * m_2 / r**2",
+      "variables": ["F", "m_1", "m_2", "r"],
+      "constants": {
+        "G": {"value": 6.67430e-11, "unit": "m**3/(kg*s**2)", "name": "Gravitational constant"}
+      },
+      "units": {"F": "N", "m_1": "kg", "m_2": "kg", "r": "m"},
+      "description": "Gravitational force between two masses",
+      "solve_templates": {
+        "F": "G * m_1 * m_2 / r**2",
+        "r": "sqrt(G * m_1 * m_2 / F)"
+      }
+    },
+    {
+      "id": "gravitational_pe",
+      "name": "Gravitational Potential Energy",
+      "category": "mechanics",
+      "subcategory": "gravity",
+      "latex": "U = -G \\frac{m_1 m_2}{r}",
+      "sympy_template": "U + G * m_1 * m_2 / r",
+      "variables": ["U", "m_1", "m_2", "r"],
+      "constants": {
+        "G": {"value": 6.67430e-11, "unit": "m**3/(kg*s**2)", "name": "Gravitational constant"}
+      },
+      "units": {"U": "J", "m_1": "kg", "m_2": "kg", "r": "m"},
+      "description": "Gravitational potential energy between two masses"
+    },
+    {
+      "id": "kinetic_energy",
+      "name": "Kinetic Energy",
+      "category": "mechanics",
+      "subcategory": "energy",
+      "latex": "K = \\frac{1}{2} m v^2",
+      "sympy_template": "K - m * v**2 / 2",
+      "variables": ["K", "m", "v"],
+      "constants": {},
+      "units": {"K": "J", "m": "kg", "v": "m/s"},
+      "description": "Kinetic energy of a moving object",
+      "solve_templates": {"K": "m * v**2 / 2", "m": "2 * K / v**2", "v": "sqrt(2 * K / m)"}
+    },
+    {
+      "id": "potential_energy_spring",
+      "name": "Spring Potential Energy",
+      "category": "mechanics",
+      "subcategory": "energy",
+      "latex": "U = \\frac{1}{2} k x^2",
+      "sympy_template": "U - k * x**2 / 2",
+      "variables": ["U", "k", "x"],
+      "constants": {},
+      "units": {"U": "J", "k": "N/m", "x": "m"},
+      "description": "Potential energy stored in a spring",
+      "solve_templates": {"U": "k * x**2 / 2", "k": "2 * U / x**2", "x": "sqrt(2 * U / k)"}
+    },
+    {
+      "id": "potential_energy_gravity",
+      "name": "Gravitational PE (near surface)",
+      "category": "mechanics",
+      "subcategory": "energy",
+      "latex": "U = m g h",
+      "sympy_template": "U - m * g * h",
+      "variables": ["U", "m", "h"],
+      "constants": {
+        "g": {"value": 9.80665, "unit": "m/s**2", "name": "Standard gravity"}
+      },
+      "units": {"U": "J", "m": "kg", "h": "m"},
+      "description": "Gravitational PE near Earth's surface",
+      "solve_templates": {"U": "m * g * h", "m": "U / (g * h)", "h": "U / (m * g)"}
+    },
+    {
+      "id": "work_energy",
+      "name": "Work-Energy Theorem",
+      "category": "mechanics",
+      "subcategory": "energy",
+      "latex": "W = \\Delta K = K_f - K_i",
+      "sympy_template": "W - K_f + K_i",
+      "variables": ["W", "K_f", "K_i"],
+      "constants": {},
+      "units": {"W": "J", "K_f": "J", "K_i": "J"},
+      "description": "Work equals change in kinetic energy"
+    },
+    {
+      "id": "momentum",
+      "name": "Linear Momentum",
+      "category": "mechanics",
+      "subcategory": "momentum",
+      "latex": "p = m v",
+      "sympy_template": "p - m * v",
+      "variables": ["p", "m", "v"],
+      "constants": {},
+      "units": {"p": "kg*m/s", "m": "kg", "v": "m/s"},
+      "description": "Linear momentum of an object",
+      "solve_templates": {"p": "m * v", "m": "p / v", "v": "p / m"}
+    },
+    {
+      "id": "impulse",
+      "name": "Impulse-Momentum Theorem",
+      "category": "mechanics",
+      "subcategory": "momentum",
+      "latex": "J = F \\Delta t = \\Delta p",
+      "sympy_template": "J - F * Delta_t",
+      "variables": ["J", "F", "Delta_t"],
+      "constants": {},
+      "units": {"J": "N*s", "F": "N", "Delta_t": "s"},
+      "description": "Impulse equals change in momentum"
+    },
+    {
+      "id": "centripetal_acceleration",
+      "name": "Centripetal Acceleration",
+      "category": "mechanics",
+      "subcategory": "circular",
+      "latex": "a_c = \\frac{v^2}{r}",
+      "sympy_template": "a_c - v**2 / r",
+      "variables": ["a_c", "v", "r"],
+      "constants": {},
+      "units": {"a_c": "m/s**2", "v": "m/s", "r": "m"},
+      "description": "Centripetal acceleration for circular motion",
+      "solve_templates": {"a_c": "v**2 / r", "v": "sqrt(a_c * r)", "r": "v**2 / a_c"}
+    },
+    {
+      "id": "centripetal_force",
+      "name": "Centripetal Force",
+      "category": "mechanics",
+      "subcategory": "circular",
+      "latex": "F_c = \\frac{m v^2}{r}",
+      "sympy_template": "F_c - m * v**2 / r",
+      "variables": ["F_c", "m", "v", "r"],
+      "constants": {},
+      "units": {"F_c": "N", "m": "kg", "v": "m/s", "r": "m"},
+      "description": "Centripetal force for circular motion"
+    },
+    {
+      "id": "orbital_velocity",
+      "name": "Orbital Velocity",
+      "category": "mechanics",
+      "subcategory": "gravity",
+      "latex": "v = \\sqrt{\\frac{G M}{r}}",
+      "sympy_template": "v - sqrt(G * M / r)",
+      "variables": ["v", "M", "r"],
+      "constants": {
+        "G": {"value": 6.67430e-11, "unit": "m**3/(kg*s**2)", "name": "Gravitational constant"}
+      },
+      "units": {"v": "m/s", "M": "kg", "r": "m"},
+      "description": "Orbital velocity for circular orbit"
+    },
+    {
+      "id": "escape_velocity",
+      "name": "Escape Velocity",
+      "category": "mechanics",
+      "subcategory": "gravity",
+      "latex": "v_e = \\sqrt{\\frac{2 G M}{r}}",
+      "sympy_template": "v_e - sqrt(2 * G * M / r)",
+      "variables": ["v_e", "M", "r"],
+      "constants": {
+        "G": {"value": 6.67430e-11, "unit": "m**3/(kg*s**2)", "name": "Gravitational constant"}
+      },
+      "units": {"v_e": "m/s", "M": "kg", "r": "m"},
+      "description": "Minimum velocity to escape gravitational field"
+    },
+    {
+      "id": "period_pendulum",
+      "name": "Simple Pendulum Period",
+      "category": "mechanics",
+      "subcategory": "oscillations",
+      "latex": "T = 2 \\pi \\sqrt{\\frac{L}{g}}",
+      "sympy_template": "T - 2 * pi * sqrt(L / g)",
+      "variables": ["T", "L"],
+      "constants": {
+        "g": {"value": 9.80665, "unit": "m/s**2", "name": "Standard gravity"}
+      },
+      "units": {"T": "s", "L": "m"},
+      "description": "Period of a simple pendulum"
+    },
+    {
+      "id": "period_spring",
+      "name": "Spring Oscillation Period",
+      "category": "mechanics",
+      "subcategory": "oscillations",
+      "latex": "T = 2 \\pi \\sqrt{\\frac{m}{k}}",
+      "sympy_template": "T - 2 * pi * sqrt(m / k)",
+      "variables": ["T", "m", "k"],
+      "constants": {},
+      "units": {"T": "s", "m": "kg", "k": "N/m"},
+      "description": "Period of mass-spring oscillator"
+    },
+    {
+      "id": "frequency_period",
+      "name": "Frequency-Period Relation",
+      "category": "waves",
+      "subcategory": "general",
+      "latex": "f = \\frac{1}{T}",
+      "sympy_template": "f - 1 / T",
+      "variables": ["f", "T"],
+      "constants": {},
+      "units": {"f": "Hz", "T": "s"},
+      "description": "Frequency is inverse of period",
+      "solve_templates": {"f": "1 / T", "T": "1 / f"}
+    },
+    {
+      "id": "wave_equation",
+      "name": "Wave Equation",
+      "category": "waves",
+      "subcategory": "general",
+      "latex": "v = f \\lambda",
+      "sympy_template": "v - f * lambda",
+      "variables": ["v", "f", "lambda"],
+      "constants": {},
+      "units": {"v": "m/s", "f": "Hz", "lambda": "m"},
+      "description": "Wave speed equals frequency times wavelength",
+      "solve_templates": {"v": "f * lambda", "f": "v / lambda", "lambda": "v / f"}
+    },
+    {
+      "id": "angular_frequency",
+      "name": "Angular Frequency",
+      "category": "waves",
+      "subcategory": "general",
+      "latex": "\\omega = 2 \\pi f",
+      "sympy_template": "omega - 2 * pi * f",
+      "variables": ["omega", "f"],
+      "constants": {},
+      "units": {"omega": "rad/s", "f": "Hz"},
+      "description": "Angular frequency from frequency"
     },
     {
       "id": "snell_law",
       "name": "Snell's Law",
       "category": "optics",
+      "subcategory": "refraction",
       "latex": "n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2",
+      "sympy_template": "n_1 * sin(theta_1) - n_2 * sin(theta_2)",
       "variables": ["n_1", "theta_1", "n_2", "theta_2"],
       "constants": {},
+      "units": {"theta_1": "rad", "theta_2": "rad"},
       "description": "Law of refraction at interface between media"
+    },
+    {
+      "id": "critical_angle",
+      "name": "Critical Angle",
+      "category": "optics",
+      "subcategory": "refraction",
+      "latex": "\\sin\\theta_c = \\frac{n_2}{n_1}",
+      "sympy_template": "sin(theta_c) - n_2 / n_1",
+      "variables": ["theta_c", "n_1", "n_2"],
+      "constants": {},
+      "units": {"theta_c": "rad"},
+      "description": "Critical angle for total internal reflection"
     },
     {
       "id": "thin_lens",
       "name": "Thin Lens Equation",
       "category": "optics",
+      "subcategory": "lenses",
       "latex": "\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i}",
+      "sympy_template": "1/f - 1/d_o - 1/d_i",
       "variables": ["f", "d_o", "d_i"],
       "constants": {},
+      "units": {"f": "m", "d_o": "m", "d_i": "m"},
       "description": "Relates focal length to object and image distances"
+    },
+    {
+      "id": "magnification_lens",
+      "name": "Lens Magnification",
+      "category": "optics",
+      "subcategory": "lenses",
+      "latex": "M = -\\frac{d_i}{d_o}",
+      "sympy_template": "M + d_i / d_o",
+      "variables": ["M", "d_i", "d_o"],
+      "constants": {},
+      "units": {"d_i": "m", "d_o": "m"},
+      "description": "Magnification of a lens"
+    },
+    {
+      "id": "diffraction_single_slit",
+      "name": "Single Slit Diffraction (minima)",
+      "category": "optics",
+      "subcategory": "diffraction",
+      "latex": "a \\sin\\theta = m \\lambda",
+      "sympy_template": "a * sin(theta) - m * lambda",
+      "variables": ["a", "theta", "m", "lambda"],
+      "constants": {},
+      "units": {"a": "m", "theta": "rad", "lambda": "m"},
+      "description": "Positions of diffraction minima"
+    },
+    {
+      "id": "diffraction_grating",
+      "name": "Diffraction Grating",
+      "category": "optics",
+      "subcategory": "diffraction",
+      "latex": "d \\sin\\theta = m \\lambda",
+      "sympy_template": "d * sin(theta) - m * lambda",
+      "variables": ["d", "theta", "m", "lambda"],
+      "constants": {},
+      "units": {"d": "m", "theta": "rad", "lambda": "m"},
+      "description": "Diffraction grating maxima"
+    },
+    {
+      "id": "double_slit",
+      "name": "Double Slit Interference",
+      "category": "optics",
+      "subcategory": "interference",
+      "latex": "d \\sin\\theta = m \\lambda",
+      "sympy_template": "d * sin(theta) - m * lambda",
+      "variables": ["d", "theta", "m", "lambda"],
+      "constants": {},
+      "units": {"d": "m", "theta": "rad", "lambda": "m"},
+      "description": "Double slit interference maxima"
+    },
+    {
+      "id": "michelson_fringe_shift",
+      "name": "Michelson Interferometer Fringe Shift",
+      "category": "optics",
+      "subcategory": "interference",
+      "latex": "\\Delta N = \\frac{2 d}{\\lambda}",
+      "sympy_template": "Delta_N - 2 * d / lambda",
+      "variables": ["Delta_N", "d", "lambda"],
+      "constants": {},
+      "units": {"d": "m", "lambda": "m"},
+      "description": "Fringe shift from mirror displacement"
+    },
+    {
+      "id": "michelson_refractive_index",
+      "name": "Michelson Interferometer (refractive index)",
+      "category": "optics",
+      "subcategory": "interference",
+      "latex": "\\Delta N = \\frac{2 L (n - 1)}{\\lambda}",
+      "sympy_template": "Delta_N - 2 * L * (n - 1) / lambda",
+      "variables": ["Delta_N", "L", "n", "lambda"],
+      "constants": {},
+      "units": {"L": "m", "lambda": "m"},
+      "description": "Fringe shift from refractive index change"
     },
     {
       "id": "ideal_gas",
       "name": "Ideal Gas Law",
       "category": "thermodynamics",
+      "subcategory": "gases",
       "latex": "P V = n R T",
-      "variables": ["P", "V", "n", "R", "T"],
+      "sympy_template": "P * V - n * R * T",
+      "variables": ["P", "V", "n", "T"],
       "constants": {
-        "R": {
-          "value": 8.314462618,
-          "unit": "J/(mol·K)",
-          "name": "Gas constant"
-        }
+        "R": {"value": 8.314462618, "unit": "J/(mol*K)", "name": "Gas constant"}
       },
-      "description": "Equation of state for ideal gas"
+      "units": {"P": "Pa", "V": "m**3", "n": "mol", "T": "K"},
+      "description": "Equation of state for ideal gas",
+      "solve_templates": {"P": "n * R * T / V", "V": "n * R * T / P", "T": "P * V / (n * R)", "n": "P * V / (R * T)"}
     },
     {
-      "id": "coulomb_law",
-      "name": "Coulomb's Law",
-      "category": "electromagnetism",
-      "latex": "F = k_e \\frac{q_1 q_2}{r^2}",
-      "variables": ["F", "k_e", "q_1", "q_2", "r"],
+      "id": "ideal_gas_molecular",
+      "name": "Ideal Gas Law (molecular)",
+      "category": "thermodynamics",
+      "subcategory": "gases",
+      "latex": "P V = N k_B T",
+      "sympy_template": "P * V - N * k_B * T",
+      "variables": ["P", "V", "N", "T"],
       "constants": {
-        "k_e": {
-          "value": 8.9875517923e9,
-          "unit": "N·m²/C²",
-          "name": "Coulomb constant"
-        }
+        "k_B": {"value": 1.380649e-23, "unit": "J/K", "name": "Boltzmann constant"}
       },
-      "description": "Force between two point charges"
+      "units": {"P": "Pa", "V": "m**3", "T": "K"},
+      "description": "Ideal gas law using number of molecules"
     },
     {
-      "id": "ohm_law",
-      "name": "Ohm's Law",
-      "category": "electromagnetism",
-      "latex": "V = I R",
-      "variables": ["V", "I", "R"],
+      "id": "kinetic_theory_vrms",
+      "name": "RMS Speed of Gas Molecules",
+      "category": "thermodynamics",
+      "subcategory": "kinetic_theory",
+      "latex": "v_{rms} = \\sqrt{\\frac{3 k_B T}{m}}",
+      "sympy_template": "v_rms - sqrt(3 * k_B * T / m)",
+      "variables": ["v_rms", "T", "m"],
+      "constants": {
+        "k_B": {"value": 1.380649e-23, "unit": "J/K", "name": "Boltzmann constant"}
+      },
+      "units": {"v_rms": "m/s", "T": "K", "m": "kg"},
+      "description": "Root-mean-square speed of gas molecules"
+    },
+    {
+      "id": "thermal_energy",
+      "name": "Thermal Energy per Molecule",
+      "category": "thermodynamics",
+      "subcategory": "kinetic_theory",
+      "latex": "\\langle E \\rangle = \\frac{3}{2} k_B T",
+      "sympy_template": "E_avg - 3 * k_B * T / 2",
+      "variables": ["E_avg", "T"],
+      "constants": {
+        "k_B": {"value": 1.380649e-23, "unit": "J/K", "name": "Boltzmann constant"}
+      },
+      "units": {"E_avg": "J", "T": "K"},
+      "description": "Average kinetic energy per molecule"
+    },
+    {
+      "id": "first_law_thermo",
+      "name": "First Law of Thermodynamics",
+      "category": "thermodynamics",
+      "subcategory": "laws",
+      "latex": "\\Delta U = Q - W",
+      "sympy_template": "Delta_U - Q + W",
+      "variables": ["Delta_U", "Q", "W"],
       "constants": {},
-      "description": "Voltage equals current times resistance"
+      "units": {"Delta_U": "J", "Q": "J", "W": "J"},
+      "description": "Change in internal energy equals heat minus work"
+    },
+    {
+      "id": "heat_capacity",
+      "name": "Heat Capacity",
+      "category": "thermodynamics",
+      "subcategory": "heat",
+      "latex": "Q = m c \\Delta T",
+      "sympy_template": "Q - m * c * Delta_T",
+      "variables": ["Q", "m", "c", "Delta_T"],
+      "constants": {},
+      "units": {"Q": "J", "m": "kg", "c": "J/(kg*K)", "Delta_T": "K"},
+      "description": "Heat transfer using specific heat capacity"
+    },
+    {
+      "id": "entropy_change",
+      "name": "Entropy Change",
+      "category": "thermodynamics",
+      "subcategory": "entropy",
+      "latex": "\\Delta S = \\frac{Q}{T}",
+      "sympy_template": "Delta_S - Q / T",
+      "variables": ["Delta_S", "Q", "T"],
+      "constants": {},
+      "units": {"Delta_S": "J/K", "Q": "J", "T": "K"},
+      "description": "Entropy change for reversible process"
     },
     {
       "id": "stefan_boltzmann",
       "name": "Stefan-Boltzmann Law",
       "category": "thermodynamics",
+      "subcategory": "blackbody",
       "latex": "P = \\sigma A T^4",
-      "variables": ["P", "sigma", "A", "T"],
+      "sympy_template": "P - sigma * A * T**4",
+      "variables": ["P", "A", "T"],
       "constants": {
-        "sigma": {
-          "value": 5.670374419e-8,
-          "unit": "W/(m²·K⁴)",
-          "name": "Stefan-Boltzmann constant"
-        }
+        "sigma": {"value": 5.670374419e-8, "unit": "W/(m**2*K**4)", "name": "Stefan-Boltzmann constant"}
       },
+      "units": {"P": "W", "A": "m**2", "T": "K"},
       "description": "Power radiated by a blackbody"
+    },
+    {
+      "id": "coulomb_law",
+      "name": "Coulomb's Law",
+      "category": "electromagnetism",
+      "subcategory": "electrostatics",
+      "latex": "F = k_e \\frac{q_1 q_2}{r^2}",
+      "sympy_template": "F - k_e * q_1 * q_2 / r**2",
+      "variables": ["F", "q_1", "q_2", "r"],
+      "constants": {
+        "k_e": {"value": 8.9875517923e9, "unit": "N*m**2/C**2", "name": "Coulomb constant"}
+      },
+      "units": {"F": "N", "q_1": "C", "q_2": "C", "r": "m"},
+      "description": "Force between two point charges"
+    },
+    {
+      "id": "electric_field_point",
+      "name": "Electric Field (point charge)",
+      "category": "electromagnetism",
+      "subcategory": "electrostatics",
+      "latex": "E = k_e \\frac{q}{r^2}",
+      "sympy_template": "E - k_e * q / r**2",
+      "variables": ["E", "q", "r"],
+      "constants": {
+        "k_e": {"value": 8.9875517923e9, "unit": "N*m**2/C**2", "name": "Coulomb constant"}
+      },
+      "units": {"E": "N/C", "q": "C", "r": "m"},
+      "description": "Electric field from a point charge"
+    },
+    {
+      "id": "electric_potential_point",
+      "name": "Electric Potential (point charge)",
+      "category": "electromagnetism",
+      "subcategory": "electrostatics",
+      "latex": "V = k_e \\frac{q}{r}",
+      "sympy_template": "V - k_e * q / r",
+      "variables": ["V", "q", "r"],
+      "constants": {
+        "k_e": {"value": 8.9875517923e9, "unit": "N*m**2/C**2", "name": "Coulomb constant"}
+      },
+      "units": {"V": "V", "q": "C", "r": "m"},
+      "description": "Electric potential from a point charge"
+    },
+    {
+      "id": "electric_pe",
+      "name": "Electric Potential Energy",
+      "category": "electromagnetism",
+      "subcategory": "electrostatics",
+      "latex": "U = k_e \\frac{q_1 q_2}{r}",
+      "sympy_template": "U - k_e * q_1 * q_2 / r",
+      "variables": ["U", "q_1", "q_2", "r"],
+      "constants": {
+        "k_e": {"value": 8.9875517923e9, "unit": "N*m**2/C**2", "name": "Coulomb constant"}
+      },
+      "units": {"U": "J", "q_1": "C", "q_2": "C", "r": "m"},
+      "description": "Potential energy between two point charges"
+    },
+    {
+      "id": "capacitance",
+      "name": "Capacitance Definition",
+      "category": "electromagnetism",
+      "subcategory": "capacitors",
+      "latex": "C = \\frac{Q}{V}",
+      "sympy_template": "C - Q / V",
+      "variables": ["C", "Q", "V"],
+      "constants": {},
+      "units": {"C": "F", "Q": "C", "V": "V"},
+      "description": "Capacitance as charge per voltage"
+    },
+    {
+      "id": "capacitor_energy",
+      "name": "Capacitor Energy",
+      "category": "electromagnetism",
+      "subcategory": "capacitors",
+      "latex": "U = \\frac{1}{2} C V^2",
+      "sympy_template": "U - C * V**2 / 2",
+      "variables": ["U", "C", "V"],
+      "constants": {},
+      "units": {"U": "J", "C": "F", "V": "V"},
+      "description": "Energy stored in a capacitor"
+    },
+    {
+      "id": "ohm_law",
+      "name": "Ohm's Law",
+      "category": "electromagnetism",
+      "subcategory": "circuits",
+      "latex": "V = I R",
+      "sympy_template": "V - I * R",
+      "variables": ["V", "I", "R"],
+      "constants": {},
+      "units": {"V": "V", "I": "A", "R": "ohm"},
+      "description": "Voltage equals current times resistance",
+      "solve_templates": {"V": "I * R", "I": "V / R", "R": "V / I"}
+    },
+    {
+      "id": "power_electric",
+      "name": "Electric Power",
+      "category": "electromagnetism",
+      "subcategory": "circuits",
+      "latex": "P = I V",
+      "sympy_template": "P - I * V",
+      "variables": ["P", "I", "V"],
+      "constants": {},
+      "units": {"P": "W", "I": "A", "V": "V"},
+      "description": "Power dissipation in a circuit"
+    },
+    {
+      "id": "power_resistance",
+      "name": "Power (resistance form)",
+      "category": "electromagnetism",
+      "subcategory": "circuits",
+      "latex": "P = I^2 R",
+      "sympy_template": "P - I**2 * R",
+      "variables": ["P", "I", "R"],
+      "constants": {},
+      "units": {"P": "W", "I": "A", "R": "ohm"},
+      "description": "Power in terms of current and resistance"
+    },
+    {
+      "id": "magnetic_force_charge",
+      "name": "Lorentz Force (magnetic)",
+      "category": "electromagnetism",
+      "subcategory": "magnetism",
+      "latex": "F = q v B \\sin\\theta",
+      "sympy_template": "F - q * v * B * sin(theta)",
+      "variables": ["F", "q", "v", "B", "theta"],
+      "constants": {},
+      "units": {"F": "N", "q": "C", "v": "m/s", "B": "T", "theta": "rad"},
+      "description": "Magnetic force on a moving charge"
+    },
+    {
+      "id": "magnetic_force_wire",
+      "name": "Force on Current-Carrying Wire",
+      "category": "electromagnetism",
+      "subcategory": "magnetism",
+      "latex": "F = I L B \\sin\\theta",
+      "sympy_template": "F - I * L * B * sin(theta)",
+      "variables": ["F", "I", "L", "B", "theta"],
+      "constants": {},
+      "units": {"F": "N", "I": "A", "L": "m", "B": "T", "theta": "rad"},
+      "description": "Magnetic force on a current-carrying wire"
+    },
+    {
+      "id": "faraday_law",
+      "name": "Faraday's Law",
+      "category": "electromagnetism",
+      "subcategory": "induction",
+      "latex": "\\mathcal{E} = -\\frac{d\\Phi_B}{dt}",
+      "sympy_template": "emf + d_Phi_B_dt",
+      "variables": ["emf", "d_Phi_B_dt"],
+      "constants": {},
+      "units": {"emf": "V"},
+      "description": "Induced EMF from changing magnetic flux"
+    },
+    {
+      "id": "magnetic_flux",
+      "name": "Magnetic Flux",
+      "category": "electromagnetism",
+      "subcategory": "induction",
+      "latex": "\\Phi_B = B A \\cos\\theta",
+      "sympy_template": "Phi_B - B * A * cos(theta)",
+      "variables": ["Phi_B", "B", "A", "theta"],
+      "constants": {},
+      "units": {"Phi_B": "Wb", "B": "T", "A": "m**2", "theta": "rad"},
+      "description": "Magnetic flux through a surface"
+    },
+    {
+      "id": "photoelectric_effect",
+      "name": "Photoelectric Effect",
+      "category": "quantum",
+      "subcategory": "photon",
+      "latex": "K_{max} = h f - \\phi",
+      "sympy_template": "K_max - h * f + phi",
+      "variables": ["K_max", "f", "phi"],
+      "constants": {
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"}
+      },
+      "units": {"K_max": "J", "f": "Hz", "phi": "J"},
+      "description": "Maximum kinetic energy of photoelectrons"
+    },
+    {
+      "id": "bohr_radius",
+      "name": "Bohr Radius",
+      "category": "quantum",
+      "subcategory": "atomic",
+      "latex": "r_n = n^2 a_0",
+      "sympy_template": "r_n - n**2 * a_0",
+      "variables": ["r_n", "n"],
+      "constants": {
+        "a_0": {"value": 5.29177210903e-11, "unit": "m", "name": "Bohr radius"}
+      },
+      "units": {"r_n": "m"},
+      "description": "Radius of nth Bohr orbit"
+    },
+    {
+      "id": "bohr_energy",
+      "name": "Bohr Energy Levels",
+      "category": "quantum",
+      "subcategory": "atomic",
+      "latex": "E_n = -\\frac{13.6 \\text{ eV}}{n^2}",
+      "sympy_template": "E_n + 13.6 * eV / n**2",
+      "variables": ["E_n", "n"],
+      "constants": {
+        "eV": {"value": 1.602176634e-19, "unit": "J", "name": "Electron volt"}
+      },
+      "units": {"E_n": "J"},
+      "description": "Energy of nth Bohr orbit in hydrogen"
+    },
+    {
+      "id": "rydberg_formula",
+      "name": "Rydberg Formula",
+      "category": "quantum",
+      "subcategory": "atomic",
+      "latex": "\\frac{1}{\\lambda} = R_H \\left( \\frac{1}{n_1^2} - \\frac{1}{n_2^2} \\right)",
+      "sympy_template": "1/lambda - R_H * (1/n_1**2 - 1/n_2**2)",
+      "variables": ["lambda", "n_1", "n_2"],
+      "constants": {
+        "R_H": {"value": 1.097373e7, "unit": "1/m", "name": "Rydberg constant"}
+      },
+      "units": {"lambda": "m"},
+      "description": "Wavelengths of hydrogen spectral lines"
+    },
+    {
+      "id": "compton_wavelength",
+      "name": "Compton Scattering",
+      "category": "quantum",
+      "subcategory": "photon",
+      "latex": "\\Delta \\lambda = \\frac{h}{m_e c} (1 - \\cos\\theta)",
+      "sympy_template": "Delta_lambda - h * (1 - cos(theta)) / (m_e * c)",
+      "variables": ["Delta_lambda", "theta"],
+      "constants": {
+        "h": {"value": 6.62607015e-34, "unit": "J*s", "name": "Planck constant"},
+        "m_e": {"value": 9.1093837015e-31, "unit": "kg", "name": "Electron mass"},
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
+      },
+      "units": {"Delta_lambda": "m", "theta": "rad"},
+      "description": "Change in photon wavelength after scattering"
+    },
+    {
+      "id": "time_dilation",
+      "name": "Time Dilation",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "\\Delta t = \\gamma \\Delta t_0",
+      "sympy_template": "Delta_t - gamma * Delta_t_0",
+      "variables": ["Delta_t", "gamma", "Delta_t_0"],
+      "constants": {},
+      "units": {"Delta_t": "s", "Delta_t_0": "s"},
+      "description": "Time dilation in special relativity"
+    },
+    {
+      "id": "length_contraction",
+      "name": "Length Contraction",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "L = \\frac{L_0}{\\gamma}",
+      "sympy_template": "L - L_0 / gamma",
+      "variables": ["L", "L_0", "gamma"],
+      "constants": {},
+      "units": {"L": "m", "L_0": "m"},
+      "description": "Length contraction in special relativity"
+    },
+    {
+      "id": "lorentz_factor",
+      "name": "Lorentz Factor",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "\\gamma = \\frac{1}{\\sqrt{1 - v^2/c^2}}",
+      "sympy_template": "gamma - 1 / sqrt(1 - v**2 / c**2)",
+      "variables": ["gamma", "v"],
+      "constants": {
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
+      },
+      "units": {"v": "m/s"},
+      "description": "Lorentz gamma factor"
+    },
+    {
+      "id": "relativistic_momentum",
+      "name": "Relativistic Momentum",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "p = \\gamma m v",
+      "sympy_template": "p - gamma * m * v",
+      "variables": ["p", "gamma", "m", "v"],
+      "constants": {},
+      "units": {"p": "kg*m/s", "m": "kg", "v": "m/s"},
+      "description": "Relativistic momentum"
+    },
+    {
+      "id": "relativistic_ke",
+      "name": "Relativistic Kinetic Energy",
+      "category": "relativity",
+      "subcategory": "special",
+      "latex": "K = (\\gamma - 1) m c^2",
+      "sympy_template": "K - (gamma - 1) * m * c**2",
+      "variables": ["K", "gamma", "m"],
+      "constants": {
+        "c": {"value": 299792458, "unit": "m/s", "name": "Speed of light"}
+      },
+      "units": {"K": "J", "m": "kg"},
+      "description": "Relativistic kinetic energy"
     }
-  ],
-  "version": "1.0",
-  "description": "Physics formula database for MathSolver pattern matching"
+  ]
 }

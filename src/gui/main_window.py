@@ -131,12 +131,16 @@ class MainWindow(QMainWindow):
         class_group = self._create_classification_panel()
         splitter.addWidget(class_group)
 
+        # Numerical Evaluation Panel
+        numerical_group = self._create_numerical_panel()
+        splitter.addWidget(numerical_group)
+
         # Solution Panel
         solution_group = self._create_solution_panel()
         splitter.addWidget(solution_group)
 
         # Set initial sizes (input smaller, solution larger)
-        splitter.setSizes([150, 80, 400])
+        splitter.setSizes([150, 80, 100, 400])
 
         main_layout.addWidget(splitter)
 
@@ -209,6 +213,54 @@ class MainWindow(QMainWindow):
 
         var_layout.addStretch()
         layout.addLayout(var_layout)
+
+        return group
+
+    def _create_numerical_panel(self) -> QGroupBox:
+        """Create the numerical evaluation panel."""
+        group = QGroupBox("Numerical Evaluation")
+        layout = QVBoxLayout(group)
+
+        # Variable input fields container
+        self.var_inputs_widget = QWidget()
+        self.var_inputs_layout = QVBoxLayout(self.var_inputs_widget)
+        self.var_inputs_layout.setContentsMargins(0, 0, 0, 0)
+        self.var_inputs_layout.setSpacing(5)
+
+        # Dict to track variable input fields
+        self.var_input_fields = {}
+
+        # Placeholder message
+        self.var_inputs_placeholder = QLabel(
+            "Solve an equation to enter variable values"
+        )
+        self.var_inputs_placeholder.setStyleSheet("color: gray; font-style: italic;")
+        self.var_inputs_layout.addWidget(self.var_inputs_placeholder)
+
+        layout.addWidget(self.var_inputs_widget)
+
+        # Evaluate button and result
+        eval_layout = QHBoxLayout()
+
+        self.eval_btn = QPushButton("Evaluate Numerically")
+        self.eval_btn.clicked.connect(self._on_evaluate_clicked)
+        self.eval_btn.setEnabled(False)
+        eval_layout.addWidget(self.eval_btn)
+
+        eval_layout.addStretch()
+        layout.addLayout(eval_layout)
+
+        # Numerical result display
+        result_layout = QHBoxLayout()
+        result_layout.addWidget(QLabel("Result:"))
+
+        self.numerical_result_label = QLabel("")
+        self.numerical_result_label.setFont(QFont("Monospace", 12))
+        self.numerical_result_label.setStyleSheet("font-weight: bold;")
+        result_layout.addWidget(self.numerical_result_label)
+
+        result_layout.addStretch()
+        layout.addLayout(result_layout)
 
         return group
 
@@ -464,9 +516,204 @@ class MainWindow(QMainWindow):
 
             time_ms = result.solution.solve_time_ms
             self.statusBar().showMessage(f"Solved in {time_ms}ms")
+
+            # Update numerical evaluation panel
+            self._update_numerical_panel()
         else:
             self.solution_display.setText(f"Failed: {result.error_message}")
             self.statusBar().showMessage("Solve failed")
+            self._clear_numerical_panel()
+
+    def _update_numerical_panel(self):
+        """Update the numerical evaluation panel with variable input fields."""
+        # Clear existing inputs
+        self._clear_numerical_panel()
+
+        if not self._current_equation:
+            return
+
+        # Get variables that aren't the target
+        classifier = self._get_classifier()
+        all_vars = classifier.get_variables(self._current_equation)
+
+        if not all_vars:
+            return
+
+        # Hide placeholder
+        self.var_inputs_placeholder.hide()
+
+        # Get target variable (selected in var_selector)
+        target_text = self.var_selector.currentText()
+
+        # Create input field for each non-target variable
+        for var in all_vars:
+            var_name = str(var)
+            if var_name == target_text:
+                continue  # Skip target variable
+
+            # Create row for this variable
+            row_widget = QWidget()
+            row_layout = QHBoxLayout(row_widget)
+            row_layout.setContentsMargins(0, 0, 0, 0)
+
+            label = QLabel(f"{var_name} =")
+            label.setMinimumWidth(50)
+            row_layout.addWidget(label)
+
+            input_field = QLineEdit()
+            input_field.setPlaceholderText("Enter value (e.g., 5.5 or 3e8)")
+            input_field.returnPressed.connect(self._on_evaluate_clicked)
+            row_layout.addWidget(input_field)
+
+            # Unit hint (if we have physics formula info)
+            unit_label = QLabel("")
+            unit_label.setStyleSheet("color: gray;")
+            unit_label.setMinimumWidth(50)
+            row_layout.addWidget(unit_label)
+
+            self.var_inputs_layout.addWidget(row_widget)
+            self.var_input_fields[var_name] = (input_field, unit_label, row_widget)
+
+        # Enable evaluate button if we have input fields
+        self.eval_btn.setEnabled(len(self.var_input_fields) > 0)
+
+        # Try to set unit hints from physics formula
+        self._update_unit_hints()
+
+    def _update_unit_hints(self):
+        """Update unit hints from physics formula if available."""
+        if not self._current_equation:
+            return
+
+        # Check if this is a physics equation
+        eq_type, subtype = self._current_equation.classification
+        if subtype:
+            try:
+                from ..solvers.physics_solver import PhysicsSolver
+
+                solver = PhysicsSolver()
+                info = solver.get_formula_info(subtype)
+
+                if info and "units" in info:
+                    for var_name, (
+                        input_field,
+                        unit_label,
+                        _,
+                    ) in self.var_input_fields.items():
+                        if var_name in info["units"]:
+                            unit_label.setText(f"({info['units'][var_name]})")
+            except Exception:
+                pass  # Not a physics formula or couldn't get info
+
+    def _clear_numerical_panel(self):
+        """Clear the numerical evaluation panel."""
+        # Remove all variable input widgets
+        for var_name, (_, _, widget) in self.var_input_fields.items():
+            widget.deleteLater()
+
+        self.var_input_fields.clear()
+        self.numerical_result_label.clear()
+        self.eval_btn.setEnabled(False)
+        self.var_inputs_placeholder.show()
+
+    def _on_evaluate_clicked(self):
+        """Handle numerical evaluation button click."""
+        if not self._current_solution:
+            return
+
+        import sympy as sp
+
+        # Gather numerical values from input fields
+        numerical_values = {}
+        for var_name, (input_field, _, _) in self.var_input_fields.items():
+            value_text = input_field.text().strip()
+            if value_text:
+                try:
+                    # Parse the value (handle scientific notation)
+                    # Remove unit suffix if present
+                    value_str = (
+                        value_text.split()[0] if " " in value_text else value_text
+                    )
+                    value = float(value_str)
+                    numerical_values[sp.Symbol(var_name)] = value
+                except ValueError:
+                    QMessageBox.warning(
+                        self,
+                        "Invalid Value",
+                        f"Cannot parse value for {var_name}: {value_text}",
+                    )
+                    return
+
+        if not numerical_values:
+            self.statusBar().showMessage("Enter at least one value to evaluate")
+            return
+
+        # Try to evaluate the solution numerically
+        try:
+            result_expr = self._current_solution.symbolic_result
+
+            # Check if it's a physics formula - get constants
+            eq_type, subtype = self._current_equation.classification
+            if subtype:
+                try:
+                    from ..solvers.physics_solver import PhysicsSolver
+
+                    solver = PhysicsSolver()
+                    formula = solver.library.get_by_id(subtype)
+                    if formula:
+                        # Add physical constants
+                        for const_name, const_info in formula.constants.items():
+                            numerical_values[sp.Symbol(const_name)] = const_info[
+                                "value"
+                            ]
+                except Exception:
+                    pass
+
+            # Substitute and evaluate
+            result = result_expr.subs(numerical_values).evalf()
+
+            # Format the result
+            if result.is_number:
+                result_float = float(result)
+                if abs(result_float) > 1e4 or (
+                    abs(result_float) < 1e-3 and result_float != 0
+                ):
+                    result_str = f"{result_float:.4e}"
+                else:
+                    result_str = f"{result_float:.6g}"
+
+                # Add unit if available
+                target_var = str(self._current_solution.target_variable)
+                if subtype:
+                    try:
+                        from ..solvers.physics_solver import PhysicsSolver
+
+                        physics_solver = PhysicsSolver()
+                        info = physics_solver.get_formula_info(subtype)
+                        if info and "units" in info and target_var in info["units"]:
+                            result_str += f" {info['units'][target_var]}"
+                    except Exception:
+                        pass
+
+                self.numerical_result_label.setText(result_str)
+                self.numerical_result_label.setStyleSheet(
+                    "font-weight: bold; color: green;"
+                )
+                self.statusBar().showMessage("Numerical evaluation complete")
+            else:
+                # Result still has free symbols
+                remaining = result.free_symbols
+                self.numerical_result_label.setText(
+                    f"Need values for: {', '.join(str(s) for s in remaining)}"
+                )
+                self.numerical_result_label.setStyleSheet(
+                    "font-weight: bold; color: orange;"
+                )
+
+        except Exception as e:
+            self.numerical_result_label.setText(f"Error: {str(e)}")
+            self.numerical_result_label.setStyleSheet("font-weight: bold; color: red;")
+            self.statusBar().showMessage("Numerical evaluation failed")
 
     def _on_variable_changed(self, var_text: str):
         """Handle variable selector change."""
@@ -526,6 +773,7 @@ class MainWindow(QMainWindow):
         self.classification_label.setText("No equation loaded")
         self.var_selector.clear()
         self.confidence_label.clear()
+        self._clear_numerical_panel()
         self._current_equation = None
         self._current_solution = None
         self.statusBar().showMessage("Ready")

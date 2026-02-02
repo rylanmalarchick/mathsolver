@@ -18,6 +18,7 @@ from sympy import (
 )
 
 from ..models import Equation, EquationType
+from .physics_patterns import PhysicsPatternLibrary, PatternMatch
 
 
 class EquationClassifier:
@@ -37,11 +38,27 @@ class EquationClassifier:
         eq_type, subtype = classifier.classify(equation)
     """
 
-    def __init__(self):
-        """Initialize classifier with pattern libraries."""
-        # Physics patterns will be loaded from physics_patterns.py
-        # For now, use a simple placeholder
-        self._physics_patterns = None
+    def __init__(self, physics_library: Optional[PhysicsPatternLibrary] = None):
+        """
+        Initialize classifier with pattern libraries.
+
+        Args:
+            physics_library: PhysicsPatternLibrary instance (creates default if None)
+        """
+        self._physics_library = physics_library
+        self._last_physics_match: Optional[PatternMatch] = None
+
+    @property
+    def physics_library(self) -> PhysicsPatternLibrary:
+        """Lazy-load the physics pattern library."""
+        if self._physics_library is None:
+            self._physics_library = PhysicsPatternLibrary()
+        return self._physics_library
+
+    @property
+    def last_physics_match(self) -> Optional[PatternMatch]:
+        """Get the last physics pattern match (for solver use)."""
+        return self._last_physics_match
 
     def classify(self, equation: Equation) -> Tuple[EquationType, Optional[str]]:
         """
@@ -91,10 +108,19 @@ class EquationClassifier:
         """
         Check if expression matches a known physics formula.
 
-        Returns formula name if matched, None otherwise.
+        Returns formula ID if matched, None otherwise.
+        Also stores the match result for later use by physics solver.
         """
-        # TODO: Implement physics pattern matching in Week 2
-        # This will use the PhysicsPatternLibrary
+        try:
+            match = self.physics_library.match(expr)
+            if match is not None and match.confidence >= 0.7:
+                self._last_physics_match = match
+                return match.formula.id
+        except Exception:
+            # Pattern matching failed, continue to other classifiers
+            pass
+
+        self._last_physics_match = None
         return None
 
     def _check_differential(self, expr: sp.Basic) -> Optional[str]:
