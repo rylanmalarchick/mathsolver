@@ -46,6 +46,25 @@ class TestLatexParser:
 
         assert eq.sympy_expr is not None
 
+    def test_rejects_code_injection(self):
+        """Test that parser rejects code injection attempts."""
+        from src.input.parser import LatexParser, ParseError
+
+        parser = LatexParser()
+
+        dangerous_inputs = [
+            '__import__("os").system("ls")',
+            'exec("print(1)")',
+            'eval("1+1")',
+            'open("/etc/passwd")',
+            'os.system("rm -rf /")',
+            "import os",
+        ]
+
+        for dangerous in dangerous_inputs:
+            with pytest.raises(ParseError):
+                parser.parse_plain_text(dangerous)
+
 
 class TestClassifier:
     """Tests for equation classification."""

@@ -14,6 +14,38 @@ from ..models import Equation, EquationType
 from ..utils.errors import ParseError, UnbalancedBracesError
 
 
+# Patterns that indicate potentially dangerous input (code injection attempts)
+_DANGEROUS_PATTERNS = [
+    r"__\w+__",  # Dunder methods (__import__, __class__, etc.)
+    r"\bimport\b",  # import statements
+    r"\bexec\b",  # exec function
+    r"\beval\b",  # eval function
+    r"\bopen\b",  # file operations
+    r"\bos\.",  # os module access
+    r"\bsys\.",  # sys module access
+    r"\bsubprocess\b",  # subprocess module
+    r"\bgetattr\b",  # getattr for attribute access
+    r"\bsetattr\b",  # setattr
+    r"\bdelattr\b",  # delattr
+    r"\bglobals\b",  # globals()
+    r"\blocals\b",  # locals()
+    r"\bcompile\b",  # compile()
+    r"\b__builtins__\b",  # builtins access
+]
+
+
+def _is_safe_input(text: str) -> bool:
+    """
+    Check if input looks like safe mathematical expression, not code.
+
+    This is a security measure to prevent code injection via parse_expr.
+    """
+    for pattern in _DANGEROUS_PATTERNS:
+        if re.search(pattern, text, re.IGNORECASE):
+            return False
+    return True
+
+
 class LatexParser:
     """
     Parse LaTeX strings into SymPy expressions.
@@ -159,7 +191,18 @@ class LatexParser:
 
         Returns:
             Equation object
+
+        Raises:
+            ParseError: If input is invalid or potentially dangerous
         """
+        # Security check: reject potentially dangerous input
+        if not _is_safe_input(text):
+            raise ParseError(
+                "Input contains potentially unsafe patterns",
+                latex=text,
+                suggestions=["Use only mathematical expressions"],
+            )
+
         # Use SymPy's sympify with transformations
         from sympy.parsing.sympy_parser import (
             parse_expr,

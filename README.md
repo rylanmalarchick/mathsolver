@@ -172,31 +172,44 @@ See [WORKPLAN.md](WORKPLAN.md) for detailed weekly milestones.
 | Week | Focus | Status |
 |------|-------|--------|
 | 1 | Core pipeline + basic GUI | ✅ Done |
-| 2 | Physics pattern library + PhysicsSolver | 🔄 Next |
-| 3 | Step-by-step generation + MathJax | ⏳ Planned |
-| 4 | Polish, testing, packaging | ⏳ Planned |
+| 2 | Physics pattern library + PhysicsSolver | ✅ Done |
+| 3 | Step-by-step generation + MathJax | ✅ Done |
+| 4 | Polish, testing, packaging | ✅ Done |
 
 ## Supported Equation Types
 
-### Currently Implemented
+### Implemented
 - ✅ General algebraic equations
-- ✅ Polynomial equations
-- ✅ Basic calculus (via SymPy)
+- ✅ Polynomial equations  
+- ✅ Physics formulas (62 templates)
+- ✅ Ordinary differential equations (ODEs)
+- ✅ Calculus (derivatives, integrals, limits, series)
+- ✅ Trigonometric equations
 
-### Week 2 (Physics)
-- Wien's Law
-- Planck energy relation
-- Energy-momentum relation
-- Kinematic equations
-- Optics formulas (Michelson interferometer)
-- Thermodynamics basics
-- Electromagnetism basics
+### CLI Usage
 
-### Planned
-- Differential equations (ODE/PDE)
-- Linear algebra (matrices, systems)
-- Series expansions
-- Numerical approximation fallback
+```bash
+# Launch GUI
+mathsolver
+
+# Solve equation in terminal
+mathsolver "x^2 - 4 = 0"
+
+# Solve with steps
+mathsolver -s "x^2 + 2x + 1 = 0"
+
+# Solve for specific variable with numerical values
+mathsolver -v E -n m=5 -n c=299792458 "E = mc^2"
+
+# Output formats
+mathsolver -f latex "F = ma"    # LaTeX document
+mathsolver -f python "y = mx"   # Python code
+mathsolver -f json "x^2 = 4"    # JSON output
+
+# List/search physics formulas
+mathsolver --list-formulas
+mathsolver --search "energy"
+```
 
 ## Performance Targets
 
