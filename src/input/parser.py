@@ -11,15 +11,7 @@ from sympy.parsing.latex import parse_latex
 from sympy.parsing.latex.errors import LaTeXParsingError
 
 from ..models import Equation, EquationType
-
-
-class ParseError(Exception):
-    """Raised when LaTeX parsing fails."""
-
-    def __init__(self, message: str, latex: str, suggestion: Optional[str] = None):
-        self.latex = latex
-        self.suggestion = suggestion
-        super().__init__(message)
+from ..utils.errors import ParseError, UnbalancedBracesError
 
 
 class LatexParser:

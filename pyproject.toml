@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mathsolver"
+version = "0.4.0"
+description = "Fast, offline, Linux-native GUI application for solving mathematical equations"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "MathSolver Team"}
+]
+keywords = [
+    "math", "equation", "solver", "latex", "ocr", 
+    "physics", "calculus", "ode", "sympy", "symbolic"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+dependencies = [
+    "sympy>=1.12",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "Pillow>=10.0.0",
+    "PyQt6>=6.5.0",
+    "pint>=0.22",
+]
+
+[project.optional-dependencies]
+ocr = [
+    "pix2tex[gui]>=0.1.2",
+    "torch",
+    "torchvision",
+]
+webengine = [
+    "PyQt6-WebEngine>=6.5.0",
+]
+full = [
+    "pix2tex[gui]>=0.1.2",
+    "torch",
+    "torchvision",
+    "PyQt6-WebEngine>=6.5.0",
+    "matplotlib>=3.7.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-qt>=4.2.0",
+    "ruff>=0.1.0",
+    "pyinstaller>=6.0.0",
+]
+
+[project.scripts]
+mathsolver = "src.gui.main_window:run_app"
+
+[project.gui-scripts]
+mathsolver-gui = "src.gui.main_window:run_app"
+
+[project.urls]
+Homepage = "https://github.com/mathsolver/mathsolver"
+Repository = "https://github.com/mathsolver/mathsolver"
+Documentation = "https://github.com/mathsolver/mathsolver#readme"
+Issues = "https://github.com/mathsolver/mathsolver/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # Line length handled by formatter
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]

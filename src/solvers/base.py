@@ -5,12 +5,16 @@ All solvers inherit from BaseSolver and return SolverResult.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable, TypeVar
 from dataclasses import dataclass, field
 import time
+import signal
 import sympy as sp
 
 from ..models import Equation, Solution, SolutionStep, SolveRequest
+from ..utils.errors import SolveTimeoutError
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -95,6 +99,51 @@ class BaseSolver(ABC):
         """
         start = time.perf_counter()
         result = solve_func(*args, **kwargs)
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        return result, elapsed_ms
+
+    def _timed_solve_with_timeout(
+        self,
+        solve_func: Callable[..., T],
+        timeout_seconds: float,
+        *args,
+        **kwargs,
+    ) -> tuple:
+        """
+        Wrapper that times the solve operation with a timeout.
+
+        Uses SIGALRM on Unix for true timeout (Windows falls back to no timeout).
+
+        Args:
+            solve_func: Function to call
+            timeout_seconds: Maximum time allowed (seconds)
+            *args, **kwargs: Passed to solve_func
+
+        Returns:
+            (result, elapsed_ms)
+
+        Raises:
+            SolveTimeoutError: If operation times out
+        """
+
+        def timeout_handler(signum, frame):
+            raise SolveTimeoutError(timeout_seconds)
+
+        start = time.perf_counter()
+
+        # Try to use signal-based timeout (Unix only)
+        try:
+            old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(int(timeout_seconds))
+            try:
+                result = solve_func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old_handler)
+        except AttributeError:
+            # Windows doesn't have SIGALRM - just run without timeout
+            result = solve_func(*args, **kwargs)
+
         elapsed_ms = int((time.perf_counter() - start) * 1000)
         return result, elapsed_ms
 

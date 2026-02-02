@@ -2,7 +2,7 @@
 Screenshot capture for Linux desktop environments.
 
 Detects available screenshot tools and provides a unified interface.
-Supports: gnome-screenshot, spectacle (KDE), maim, scrot.
+Supports: gnome-screenshot, spectacle (KDE), maim, scrot, flameshot.
 """
 
 import subprocess
@@ -12,11 +12,7 @@ from pathlib import Path
 from typing import Optional, List, Tuple
 from PIL import Image
 
-
-class ScreenshotError(Exception):
-    """Raised when screenshot capture fails."""
-
-    pass
+from ..utils.errors import ScreenshotError, ScreenshotCancelledError
 
 
 class ScreenshotCapture:
@@ -24,7 +20,7 @@ class ScreenshotCapture:
     Cross-desktop screenshot capture for Linux.
 
     Automatically detects and uses the first available screenshot tool.
-    Priority order: gnome-screenshot → spectacle → maim → scrot
+    Priority order: flameshot → gnome-screenshot → spectacle → maim → scrot
 
     Usage:
         capture = ScreenshotCapture()
@@ -34,6 +30,7 @@ class ScreenshotCapture:
     # Tool name -> command template
     # {output} will be replaced with the output path
     TOOLS: dict[str, List[str]] = {
+        "flameshot": ["flameshot", "gui", "--raw", "-p", "{output}"],
         "gnome-screenshot": ["gnome-screenshot", "-a", "-f", "{output}"],
         "spectacle": ["spectacle", "-r", "-b", "-n", "-o", "{output}"],
         "maim": ["maim", "-s", "{output}"],
@@ -105,7 +102,8 @@ class ScreenshotCapture:
             PIL Image object of the captured region.
 
         Raises:
-            ScreenshotError: If capture fails or user cancels.
+            ScreenshotCancelledError: If user cancels the selection.
+            ScreenshotError: If capture fails for other reasons.
         """
         output_path = output_path or self.DEFAULT_OUTPUT
 
@@ -117,20 +115,38 @@ class ScreenshotCapture:
         cmd = [arg.replace("{output}", output_path) for arg in self.TOOLS[self.tool]]
 
         # Execute screenshot tool
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            raise ScreenshotError(
+                "Screenshot tool timed out after 60 seconds",
+                suggestions=["Try again and select an area more quickly"],
+            )
 
         # Check for errors
         if result.returncode != 0:
             # User cancelled is usually returncode 1 with no stderr
+            # or specific exit codes for different tools
+            stderr_lower = result.stderr.lower() if result.stderr else ""
+
             if result.returncode == 1 and not result.stderr:
-                raise ScreenshotError("Screenshot cancelled by user")
+                raise ScreenshotCancelledError()
+            if "cancel" in stderr_lower or "aborted" in stderr_lower:
+                raise ScreenshotCancelledError()
+
             raise ScreenshotError(
-                f"Screenshot failed (exit code {result.returncode}): {result.stderr}"
+                f"Screenshot failed (exit code {result.returncode})",
+                technical_details=result.stderr if result.stderr else None,
             )
 
         # Verify file was created (some tools exit 0 even on cancel)
         if not os.path.exists(output_path):
-            raise ScreenshotError("Screenshot was not saved (possibly cancelled)")
+            raise ScreenshotCancelledError()
+
+        # Check file size (empty file means cancelled for some tools)
+        if os.path.getsize(output_path) == 0:
+            os.remove(output_path)
+            raise ScreenshotCancelledError()
 
         # Load and return image
         try:
@@ -140,7 +156,14 @@ class ScreenshotCapture:
                 image = image.convert("RGB")
             return image
         except Exception as e:
-            raise ScreenshotError(f"Failed to load screenshot: {e}")
+            raise ScreenshotError(
+                f"Failed to load screenshot image",
+                technical_details=str(e),
+                suggestions=[
+                    "The captured image may be corrupted",
+                    "Try capturing again",
+                ],
+            )
 
     def capture_fullscreen(self, output_path: Optional[str] = None) -> Image.Image:
         """

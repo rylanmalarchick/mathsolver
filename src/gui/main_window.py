@@ -29,6 +29,18 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QAction, QFont, QClipboard
 
+from ..utils.errors import (
+    format_error_for_dialog,
+    format_error_for_user,
+    MathSolverError,
+    ParseError,
+    OCRError,
+    ScreenshotCancelledError,
+    SolveError,
+    SolveTimeoutError,
+    ErrorSeverity,
+)
+
 
 class OCRWorker(QThread):
     """Background thread for OCR processing."""
@@ -373,6 +385,34 @@ class MainWindow(QMainWindow):
             self._solver = GeneralSolver()
         return self._solver
 
+    # === Error Handling ===
+
+    def _show_error(self, exc: Exception, context: str = "") -> None:
+        """
+        Show a rich error dialog with suggestions.
+
+        Uses the centralized error handling system to provide
+        user-friendly error messages with actionable suggestions.
+        """
+        error_info = format_error_for_dialog(exc, context)
+
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle(error_info["title"])
+        msg_box.setText(error_info["text"])
+        msg_box.setIcon(error_info["icon"])
+
+        if error_info["detailed_text"]:
+            msg_box.setDetailedText(error_info["detailed_text"])
+
+        msg_box.exec()
+
+        # Update status bar with brief message
+        self.statusBar().showMessage(format_error_for_user(exc, context))
+
+    def _show_info(self, title: str, message: str) -> None:
+        """Show an informational message."""
+        self.statusBar().showMessage(message)
+
     # === Event Handlers ===
 
     def _on_screenshot_clicked(self):
@@ -390,8 +430,7 @@ class MainWindow(QMainWindow):
             self.ocr_worker.start()
 
         except Exception as e:
-            QMessageBox.warning(self, "Screenshot Error", str(e))
-            self.statusBar().showMessage("Screenshot failed")
+            self._show_error(e, "initializing screenshot capture")
 
     def _on_ocr_finished(self, latex: str, confidence: float):
         """Handle OCR completion."""
@@ -414,11 +453,14 @@ class MainWindow(QMainWindow):
 
     def _on_ocr_error(self, error: str):
         """Handle OCR error."""
-        if "cancelled" in error.lower():
+        # Check for cancellation (not a real error)
+        if "cancelled" in error.lower() or "cancel" in error.lower():
             self.statusBar().showMessage("Screenshot cancelled")
-        else:
-            QMessageBox.warning(self, "OCR Error", error)
-            self.statusBar().showMessage("OCR failed")
+            return
+
+        # Create appropriate error and show
+        ocr_error = OCRError(error)
+        self._show_error(ocr_error, "during OCR processing")
 
     def _on_solve_clicked(self):
         """Handle solve button click."""
@@ -440,8 +482,10 @@ class MainWindow(QMainWindow):
             equation = parser.parse_plain_text(text)
             self.latex_input.setText(equation.raw_latex)
             self._solve_equation(equation)
+        except ParseError as e:
+            self._show_error(e, "parsing plain text")
         except Exception as e:
-            QMessageBox.warning(self, "Parse Error", str(e))
+            self._show_error(e, "parsing plain text")
 
     def _solve_latex(self, latex: str):
         """Parse and solve a LaTeX string."""
@@ -449,9 +493,10 @@ class MainWindow(QMainWindow):
             parser = self._get_parser()
             equation = parser.parse(latex)
             self._solve_equation(equation)
+        except ParseError as e:
+            self._show_error(e, "parsing LaTeX")
         except Exception as e:
-            QMessageBox.warning(self, "Parse Error", str(e))
-            self.statusBar().showMessage("Failed to parse equation")
+            self._show_error(e, "parsing LaTeX")
 
     def _solve_equation(self, equation):
         """Solve a parsed equation."""

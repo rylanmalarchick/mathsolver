@@ -2,9 +2,23 @@
 Version=1.0
 Type=Application
 Name=MathSolver
-Comment=Offline equation solver with OCR
-Exec=bash -c "cd $(dirname %k) && source venv/bin/activate && python main.py"
+GenericName=Equation Solver
+Comment=Offline equation solver with OCR support for physics, calculus, and ODEs
+Exec=mathsolver
+TryExec=mathsolver
 Icon=accessories-calculator
 Terminal=false
 Categories=Science;Math;Education;
-Keywords=math;equation;solver;latex;physics;
+Keywords=math;equation;solver;latex;physics;calculus;ode;sympy;
+StartupNotify=true
+StartupWMClass=mathsolver
+
+# For development installation:
+# Exec=bash -c "cd /path/to/mathsolver && source .venv/bin/activate && python main.py"
+
+# Actions for quick access
+Actions=FromClipboard;
+
+[Desktop Action FromClipboard]
+Name=Solve from Clipboard
+Exec=mathsolver --from-clipboard

@@ -10,12 +10,7 @@ from typing import Tuple, Optional
 from PIL import Image
 
 from ..models import OCRResult
-
-
-class OCRError(Exception):
-    """Raised when OCR processing fails."""
-
-    pass
+from ..utils.errors import OCRError
 
 
 class OCREngine:
