@@ -6,13 +6,13 @@ Capture equations via screenshot or LaTeX input, get step-by-step symbolic solut
 
 ## Features
 
-- 📷 **Screenshot Capture**: Select any equation on screen, auto-detect via OCR
-- ⌨️ **Direct Input**: LaTeX or plain text equation entry
-- 🔬 **Smart Classification**: Routes equations to specialized solvers
-- 📝 **Step-by-Step Solutions**: Pedagogical output showing derivation
-- 🔢 **Numerical Evaluation**: Plug in values with physical constants library
-- 💾 **History Database**: Track and search past solutions
-- 🐧 **Linux Native**: Supports GNOME, KDE, i3/sway
+- **Screenshot Capture**: Select any equation on screen, auto-detect via OCR
+- **Direct Input**: LaTeX or plain text equation entry
+- **Smart Classification**: Routes equations to specialized solvers
+- **Step-by-Step Solutions**: Pedagogical output showing derivation
+- **Numerical Evaluation**: Plug in values with physical constants library
+- **History Database**: Track and search past solutions
+- **Linux Native**: Supports GNOME, KDE, i3/sway
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ Capture equations via screenshot or LaTeX input, get step-by-step symbolic solut
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mathsolver.git
+git clone https://github.com/rylanmalarchick/mathsolver.git
 cd mathsolver
 
 # Create virtual environment (Python 3.10-3.12 recommended)
@@ -72,12 +72,12 @@ python main.py --search "energy"
 
 ## Supported Equation Types
 
-- ✅ General algebraic equations
-- ✅ Polynomial equations  
-- ✅ Physics formulas (62 templates)
-- ✅ Ordinary differential equations (ODEs)
-- ✅ Calculus (derivatives, integrals, limits, series)
-- ✅ Trigonometric equations
+- General algebraic equations
+- Polynomial equations
+- Physics formulas (62 templates)
+- Ordinary differential equations (ODEs)
+- Calculus (derivatives, integrals, limits, series)
+- Trigonometric equations
 
 ## Dependencies
 
