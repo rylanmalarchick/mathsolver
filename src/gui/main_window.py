@@ -5,42 +5,33 @@ PyQt6-based GUI with input, classification, solving, and output panels.
 """
 
 import sys
-from typing import Optional
+
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QAction, QFont
 from PyQt6.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
+    QApplication,
+    QComboBox,
+    QFileDialog,
+    QGroupBox,
     QHBoxLayout,
-    QPushButton,
     QLabel,
     QLineEdit,
-    QTextEdit,
-    QComboBox,
-    QGroupBox,
-    QScrollArea,
-    QStatusBar,
-    QToolBar,
-    QMessageBox,
-    QApplication,
-    QProgressBar,
-    QSplitter,
-    QFrame,
-    QFileDialog,
+    QMainWindow,
     QMenu,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QTextEdit,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QAction, QFont, QClipboard
 
 from ..utils.errors import (
+    OCRError,
+    ParseError,
     format_error_for_dialog,
     format_error_for_user,
-    MathSolverError,
-    ParseError,
-    OCRError,
-    ScreenshotCancelledError,
-    SolveError,
-    SolveTimeoutError,
-    ErrorSeverity,
 )
 
 
@@ -531,7 +522,6 @@ class MainWindow(QMainWindow):
         # Get selected target variable
         target = None
         if variables:
-            import sympy as sp
 
             target = variables[0]
 
@@ -648,7 +638,7 @@ class MainWindow(QMainWindow):
 
                 if info and "units" in info:
                     for var_name, (
-                        input_field,
+                        _input_field,
                         unit_label,
                         _,
                     ) in self.var_input_fields.items():
@@ -660,7 +650,7 @@ class MainWindow(QMainWindow):
     def _clear_numerical_panel(self):
         """Clear the numerical evaluation panel."""
         # Remove all variable input widgets
-        for var_name, (_, _, widget) in self.var_input_fields.items():
+        for _var_name, (_, _, widget) in self.var_input_fields.items():
             widget.deleteLater()
 
         self.var_input_fields.clear()
@@ -773,6 +763,7 @@ class MainWindow(QMainWindow):
             return
 
         import sympy as sp
+
         from ..models import SolveRequest
 
         target = sp.Symbol(var_text)
@@ -794,8 +785,8 @@ class MainWindow(QMainWindow):
 
     def _on_history_clicked(self):
         """Handle history button click."""
-        from .history_dialog import HistoryDialog
         from ..utils.database import HistoryDatabase
+        from .history_dialog import HistoryDialog
 
         dialog = HistoryDialog(database=HistoryDatabase(), parent=self)
         dialog.re_solve_requested.connect(self._on_re_solve_from_history)
@@ -820,7 +811,7 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("No solution to copy")
             return
 
-        from ..output.exporter import SolutionExporter, ExportOptions
+        from ..output.exporter import ExportOptions, SolutionExporter
 
         options = ExportOptions(
             include_steps=True,
@@ -867,7 +858,7 @@ class MainWindow(QMainWindow):
 
     def _export_to_file(self, format_type: str):
         """Export solution to a file."""
-        from ..output.exporter import SolutionExporter, ExportOptions
+        from ..output.exporter import SolutionExporter
         from ..utils.errors import ExportError
 
         if not self._current_solution:

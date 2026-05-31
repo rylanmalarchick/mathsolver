@@ -4,11 +4,13 @@ Base solver interface and common result types.
 All solvers inherit from BaseSolver and return SolverResult.
 """
 
-from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Callable, TypeVar
-from dataclasses import dataclass, field
-import time
 import signal
+import time
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import TypeVar
+
 import sympy as sp
 
 from ..models import Equation, Solution, SolutionStep, SolveRequest
@@ -26,8 +28,8 @@ class SolverResult:
     """
 
     success: bool
-    solution: Optional[Solution] = None
-    error_message: Optional[str] = None
+    solution: Solution | None = None
+    error_message: str | None = None
     solver_name: str = ""
 
     @classmethod
@@ -156,7 +158,7 @@ class SolverRegistry:
     """
 
     def __init__(self):
-        self._solvers: List[BaseSolver] = []
+        self._solvers: list[BaseSolver] = []
 
     def register(self, solver: BaseSolver, priority: int = 100):
         """
@@ -165,7 +167,7 @@ class SolverRegistry:
         self._solvers.append((priority, solver))
         self._solvers.sort(key=lambda x: x[0])
 
-    def get_solver(self, equation: Equation) -> Optional[BaseSolver]:
+    def get_solver(self, equation: Equation) -> BaseSolver | None:
         """
         Get the highest-priority solver that can handle this equation.
         """
@@ -174,11 +176,11 @@ class SolverRegistry:
                 return solver
         return None
 
-    def get_all_capable(self, equation: Equation) -> List[BaseSolver]:
+    def get_all_capable(self, equation: Equation) -> list[BaseSolver]:
         """Get all solvers that can handle this equation."""
         return [solver for _, solver in self._solvers if solver.can_solve(equation)]
 
     @property
-    def solvers(self) -> List[BaseSolver]:
+    def solvers(self) -> list[BaseSolver]:
         """Get all registered solvers in priority order."""
         return [solver for _, solver in self._solvers]

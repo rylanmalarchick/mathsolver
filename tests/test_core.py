@@ -2,9 +2,10 @@
 Basic tests for MathSolver core functionality.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,8 +16,8 @@ class TestLatexParser:
 
     def test_simple_equation(self):
         """Test parsing a simple equation."""
+
         from src.input.parser import LatexParser
-        import sympy as sp
 
         parser = LatexParser()
         eq = parser.parse(r"x^2 + 2x + 1 = 0")
@@ -26,8 +27,8 @@ class TestLatexParser:
 
     def test_physics_equation(self):
         """Test parsing E = mc^2."""
+
         from src.input.parser import LatexParser
-        import sympy as sp
 
         parser = LatexParser()
         eq = parser.parse(r"E = mc^2")
@@ -71,8 +72,8 @@ class TestClassifier:
 
     def test_polynomial_classification(self):
         """Test that polynomial equations are classified correctly."""
-        from src.input.parser import LatexParser
         from src.classification.classifier import EquationClassifier
+        from src.input.parser import LatexParser
         from src.models import EquationType
 
         parser = LatexParser()
@@ -86,8 +87,8 @@ class TestClassifier:
 
     def test_general_classification(self):
         """Test fallback to general classification."""
-        from src.input.parser import LatexParser
         from src.classification.classifier import EquationClassifier
+        from src.input.parser import LatexParser
         from src.models import EquationType
 
         parser = LatexParser()
@@ -105,10 +106,10 @@ class TestGeneralSolver:
 
     def test_linear_equation(self):
         """Test solving a linear equation."""
+
         from src.input.parser import LatexParser
-        from src.solvers.general import GeneralSolver
         from src.models import SolveRequest
-        import sympy as sp
+        from src.solvers.general import GeneralSolver
 
         parser = LatexParser()
         solver = GeneralSolver()
@@ -132,10 +133,10 @@ class TestGeneralSolver:
 
     def test_quadratic_equation(self):
         """Test solving a quadratic equation."""
+
         from src.input.parser import LatexParser
-        from src.solvers.general import GeneralSolver
         from src.models import SolveRequest
-        import sympy as sp
+        from src.solvers.general import GeneralSolver
 
         parser = LatexParser()
         solver = GeneralSolver()

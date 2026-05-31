@@ -6,7 +6,6 @@ These dataclasses define the contract between layers.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Tuple, Any
 from enum import Enum, auto
 
 import sympy as sp
@@ -50,11 +49,11 @@ class Equation:
 
     raw_latex: str
     sympy_expr: sp.Basic  # Can be Expr, Eq, or Relational
-    classification: Tuple[EquationType, Optional[str]] = field(
+    classification: tuple[EquationType, str | None] = field(
         default=(EquationType.GENERAL, None)
     )
-    variables: List[sp.Symbol] = field(default_factory=list)
-    constants: Dict[sp.Symbol, float] = field(default_factory=dict)
+    variables: list[sp.Symbol] = field(default_factory=list)
+    constants: dict[sp.Symbol, float] = field(default_factory=dict)
     ocr_confidence: float = 1.0  # 1.0 if manually entered
     timestamp: datetime = field(default_factory=datetime.now)
 
@@ -73,10 +72,10 @@ class Solution:
     """
 
     equation: Equation
-    target_variable: Optional[sp.Symbol]
+    target_variable: sp.Symbol | None
     symbolic_result: sp.Basic  # The solved expression
-    steps: List[SolutionStep] = field(default_factory=list)
-    numerical_result: Optional[float] = None
+    steps: list[SolutionStep] = field(default_factory=list)
+    numerical_result: float | None = None
     solve_time_ms: int = 0
     method_used: str = ""  # e.g., "sympy.solve", "physics_template", "dsolve"
 
@@ -110,8 +109,8 @@ class SolveRequest:
     """
 
     equation: Equation
-    target_variable: Optional[sp.Symbol] = None
-    numerical_values: Dict[sp.Symbol, float] = field(default_factory=dict)
+    target_variable: sp.Symbol | None = None
+    numerical_values: dict[sp.Symbol, float] = field(default_factory=dict)
     show_steps: bool = True
 
     def __post_init__(self):
@@ -127,4 +126,4 @@ class OCRResult:
     latex: str
     confidence: float
     processing_time_ms: int
-    image_path: Optional[str] = None
+    image_path: str | None = None

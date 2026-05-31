@@ -2,9 +2,10 @@
 Tests for ODE and Calculus solvers.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -15,9 +16,10 @@ class TestODESolver:
 
     def test_can_solve_first_order(self):
         """Test that ODE solver recognizes first-order ODEs."""
-        from src.solvers.ode_solver import ODESolver
-        from src.models import Equation, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType
+        from src.solvers.ode_solver import ODESolver
 
         solver = ODESolver()
 
@@ -36,9 +38,10 @@ class TestODESolver:
 
     def test_solve_separable(self):
         """Test solving a separable ODE: dy/dx = y."""
-        from src.solvers.ode_solver import ODESolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.ode_solver import ODESolver
 
         solver = ODESolver()
 
@@ -64,9 +67,10 @@ class TestODESolver:
 
     def test_solve_second_order_harmonic(self):
         """Test solving y'' + y = 0 (simple harmonic oscillator)."""
-        from src.solvers.ode_solver import ODESolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.ode_solver import ODESolver
 
         solver = ODESolver()
 
@@ -91,9 +95,10 @@ class TestODESolver:
 
     def test_generates_steps(self):
         """Test that ODE solver generates step explanations."""
-        from src.solvers.ode_solver import ODESolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.ode_solver import ODESolver
 
         solver = ODESolver()
 
@@ -118,9 +123,10 @@ class TestODESolver:
 
     def test_classification_info(self):
         """Test getting classification info for an ODE."""
-        from src.solvers.ode_solver import ODESolver
-        from src.models import Equation, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType
+        from src.solvers.ode_solver import ODESolver
 
         solver = ODESolver()
 
@@ -146,9 +152,10 @@ class TestCalculusSolver:
 
     def test_can_solve_derivative(self):
         """Test that calculus solver recognizes derivatives."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -165,9 +172,10 @@ class TestCalculusSolver:
 
     def test_solve_derivative(self):
         """Test evaluating a derivative: d/dx(x^2) = 2x."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -189,9 +197,10 @@ class TestCalculusSolver:
 
     def test_solve_chain_rule(self):
         """Test derivative with chain rule: d/dx(sin(x^2))."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -214,9 +223,10 @@ class TestCalculusSolver:
 
     def test_solve_indefinite_integral(self):
         """Test indefinite integral: ∫x^2 dx = x^3/3."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -239,9 +249,10 @@ class TestCalculusSolver:
 
     def test_solve_definite_integral(self):
         """Test definite integral: ∫_0^π sin(x) dx = 2."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -263,9 +274,10 @@ class TestCalculusSolver:
 
     def test_solve_limit(self):
         """Test limit: lim_{x->0} sin(x)/x = 1."""
-        from src.solvers.calculus_solver import CalculusSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
 
@@ -287,8 +299,9 @@ class TestCalculusSolver:
 
     def test_convenience_differentiate(self):
         """Test differentiate convenience method."""
-        from src.solvers.calculus_solver import CalculusSolver
         import sympy as sp
+
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
         x = sp.Symbol("x")
@@ -300,8 +313,9 @@ class TestCalculusSolver:
 
     def test_convenience_integrate(self):
         """Test integrate_expr convenience method."""
-        from src.solvers.calculus_solver import CalculusSolver
         import sympy as sp
+
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
         x = sp.Symbol("x")
@@ -313,8 +327,9 @@ class TestCalculusSolver:
 
     def test_series_expansion(self):
         """Test Taylor series expansion."""
-        from src.solvers.calculus_solver import CalculusSolver
         import sympy as sp
+
+        from src.solvers.calculus_solver import CalculusSolver
 
         solver = CalculusSolver()
         x = sp.Symbol("x")
@@ -333,9 +348,10 @@ class TestStepGenerator:
 
     def test_linear_steps(self):
         """Test generating steps for linear equation."""
-        from src.output.step_generator import StepGenerator
-        from src.models import Equation
         import sympy as sp
+
+        from src.models import Equation
+        from src.output.step_generator import StepGenerator
 
         gen = StepGenerator()
         x = sp.Symbol("x")
@@ -353,9 +369,10 @@ class TestStepGenerator:
 
     def test_quadratic_steps(self):
         """Test generating steps for quadratic equation."""
-        from src.output.step_generator import StepGenerator
-        from src.models import Equation
         import sympy as sp
+
+        from src.models import Equation
+        from src.output.step_generator import StepGenerator
 
         gen = StepGenerator()
         x = sp.Symbol("x")
@@ -376,8 +393,9 @@ class TestStepGenerator:
 
     def test_derivative_steps(self):
         """Test generating derivative steps."""
-        from src.output.step_generator import StepGenerator
         import sympy as sp
+
+        from src.output.step_generator import StepGenerator
 
         gen = StepGenerator()
         x = sp.Symbol("x")
@@ -394,8 +412,9 @@ class TestStepGenerator:
 
     def test_integral_steps(self):
         """Test generating integral steps."""
-        from src.output.step_generator import StepGenerator
         import sympy as sp
+
+        from src.output.step_generator import StepGenerator
 
         gen = StepGenerator()
         x = sp.Symbol("x")
@@ -412,9 +431,10 @@ class TestStepGenerator:
 
     def test_steps_to_html(self):
         """Test converting steps to HTML."""
-        from src.output.step_generator import StepGenerator
-        from src.models import SolutionStep
         import sympy as sp
+
+        from src.models import SolutionStep
+        from src.output.step_generator import StepGenerator
 
         gen = StepGenerator()
 
@@ -435,9 +455,10 @@ class TestMathJaxRenderer:
 
     def test_render_steps_html(self):
         """Test that renderer produces valid HTML."""
-        from src.output.mathjax_widget import MathJaxRenderer
-        from src.models import SolutionStep
         import sympy as sp
+
+        from src.models import SolutionStep
+        from src.output.mathjax_widget import MathJaxRenderer
 
         renderer = MathJaxRenderer()
 
@@ -462,9 +483,10 @@ class TestMathJaxRenderer:
 
     def test_show_final_only(self):
         """Test showing only final result."""
-        from src.output.mathjax_widget import MathJaxRenderer
-        from src.models import SolutionStep
         import sympy as sp
+
+        from src.models import SolutionStep
+        from src.output.mathjax_widget import MathJaxRenderer
 
         renderer = MathJaxRenderer()
 
@@ -491,9 +513,10 @@ class TestClassifierIntegration:
 
     def test_classifies_ode(self):
         """Test that ODEs are classified correctly."""
+        import sympy as sp
+
         from src.classification.classifier import EquationClassifier
         from src.models import Equation, EquationType
-        import sympy as sp
 
         classifier = EquationClassifier()
 
@@ -513,9 +536,10 @@ class TestClassifierIntegration:
 
     def test_classifies_integral(self):
         """Test that integrals are classified correctly."""
+        import sympy as sp
+
         from src.classification.classifier import EquationClassifier
         from src.models import Equation, EquationType
-        import sympy as sp
 
         classifier = EquationClassifier()
 

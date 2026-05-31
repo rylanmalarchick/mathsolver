@@ -12,7 +12,7 @@ class TestErrorContext:
 
     def test_from_parse_error(self):
         """Test ErrorContext from ParseError."""
-        from src.utils.errors import ParseError, ErrorContext
+        from src.utils.errors import ErrorContext, ParseError
 
         exc = ParseError(
             "Failed to parse: unexpected token",
@@ -29,7 +29,7 @@ class TestErrorContext:
 
     def test_from_ocr_error(self):
         """Test ErrorContext from OCRError."""
-        from src.utils.errors import OCRError, ErrorContext
+        from src.utils.errors import ErrorContext, OCRError
 
         exc = OCRError("Model failed to process image")
         ctx = ErrorContext.from_exception(exc)
@@ -41,7 +41,7 @@ class TestErrorContext:
 
     def test_from_solve_timeout_error(self):
         """Test ErrorContext from SolveTimeoutError."""
-        from src.utils.errors import SolveTimeoutError, ErrorContext, ErrorSeverity
+        from src.utils.errors import ErrorContext, ErrorSeverity, SolveTimeoutError
 
         exc = SolveTimeoutError(30.0, equation="x^100 + y^100 = z^100")
         ctx = ErrorContext.from_exception(exc)
@@ -53,7 +53,7 @@ class TestErrorContext:
 
     def test_from_no_solution_error(self):
         """Test ErrorContext from NoSolutionError."""
-        from src.utils.errors import NoSolutionError, ErrorContext
+        from src.utils.errors import ErrorContext, NoSolutionError
 
         exc = NoSolutionError(equation="x^2 = -1", variable="x")
         ctx = ErrorContext.from_exception(exc)
@@ -133,7 +133,7 @@ class TestFormatFunctions:
 
     def test_format_error_for_user(self):
         """Test brief user-friendly formatting."""
-        from src.utils.errors import format_error_for_user, ParseError
+        from src.utils.errors import ParseError, format_error_for_user
 
         exc = ParseError("Bad LaTeX", latex=r"\bad")
         msg = format_error_for_user(exc, "testing")
@@ -144,7 +144,7 @@ class TestFormatFunctions:
 
     def test_format_error_for_dialog(self):
         """Test dialog formatting."""
-        from src.utils.errors import format_error_for_dialog, OCRError
+        from src.utils.errors import OCRError, format_error_for_dialog
 
         exc = OCRError("Model not loaded")
         info = format_error_for_dialog(exc, "testing OCR")

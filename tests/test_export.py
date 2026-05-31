@@ -2,14 +2,14 @@
 Tests for solution export functionality.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
 
+import pytest
 import sympy as sp
 
 from src.models import Equation, Solution, SolutionStep
-from src.output.exporter import SolutionExporter, ExportOptions
+from src.output.exporter import ExportOptions, SolutionExporter
 
 
 @pytest.fixture

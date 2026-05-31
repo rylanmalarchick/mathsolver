@@ -1,10 +1,10 @@
 """Solver layer: specialized solvers for different equation types."""
 
-from .base import BaseSolver, SolverResult, SolverRegistry
-from .general import GeneralSolver
-from .physics_solver import PhysicsSolver
-from .ode_solver import ODESolver
+from .base import BaseSolver, SolverRegistry, SolverResult
 from .calculus_solver import CalculusSolver
+from .general import GeneralSolver
+from .ode_solver import ODESolver
+from .physics_solver import PhysicsSolver
 
 __all__ = [
     "BaseSolver",

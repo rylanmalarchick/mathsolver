@@ -5,35 +5,29 @@ Generates human-readable explanations for solution steps.
 Enhanced with calculus, polynomial factorization, and physics explanations.
 """
 
-from typing import List, Optional, Tuple, Dict, Any
+from typing import Any
+
 import sympy as sp
 from sympy import (
-    Eq,
-    Symbol,
-    latex,
     Derivative,
+    Eq,
     Integral,
-    Limit,
-    sin,
-    cos,
-    tan,
-    exp,
-    log,
-    sqrt,
-    pi,
-    diff,
-    integrate,
-    factor,
-    expand,
-    simplify,
-    collect,
     Poly,
-    degree,
+    Symbol,
+    cos,
+    diff,
+    exp,
+    factor,
+    integrate,
+    latex,
+    log,
     roots,
-    solve,
+    simplify,
+    sin,
+    tan,
 )
 
-from ..models import SolutionStep, Equation, EquationType
+from ..models import Equation, SolutionStep
 
 
 class StepGenerator:
@@ -92,7 +86,7 @@ class StepGenerator:
 
     def generate_linear_steps(
         self, equation: Equation, target: Symbol, solution: sp.Basic
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate steps for solving a linear equation.
 
@@ -142,8 +136,8 @@ class StepGenerator:
     # === Quadratic Equations ===
 
     def generate_quadratic_steps(
-        self, equation: Equation, target: Symbol, solutions: List[sp.Basic]
-    ) -> List[SolutionStep]:
+        self, equation: Equation, target: Symbol, solutions: list[sp.Basic]
+    ) -> list[SolutionStep]:
         """
         Generate steps for solving a quadratic equation.
 
@@ -270,7 +264,7 @@ class StepGenerator:
 
     def generate_factorization_steps(
         self, expr: sp.Basic, target: Symbol
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate steps for polynomial factorization.
         """
@@ -301,7 +295,7 @@ class StepGenerator:
                         self.create_text_step(
                             step_num,
                             "Find rational roots using Rational Root Theorem",
-                            f"\\text{{Possible rational roots: }} \\pm\\frac{{p}}{{q}}",
+                            "\\text{Possible rational roots: } \\pm\\frac{p}{q}",
                         )
                     )
                     step_num += 1
@@ -330,7 +324,7 @@ class StepGenerator:
 
     def generate_derivative_steps(
         self, expr: sp.Basic, var: Symbol, result: sp.Basic
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate detailed steps for differentiation with rule identification.
         """
@@ -380,9 +374,9 @@ class StepGenerator:
         integrand: sp.Basic,
         var: Symbol,
         result: sp.Basic,
-        lower: Optional[sp.Basic] = None,
-        upper: Optional[sp.Basic] = None,
-    ) -> List[SolutionStep]:
+        lower: sp.Basic | None = None,
+        upper: sp.Basic | None = None,
+    ) -> list[SolutionStep]:
         """
         Generate detailed steps for integration.
         """
@@ -484,8 +478,8 @@ class StepGenerator:
         formula_name: str,
         target_var: str,
         solve_template: str,
-        constants: Dict[str, Any],
-    ) -> List[SolutionStep]:
+        constants: dict[str, Any],
+    ) -> list[SolutionStep]:
         """
         Generate steps for physics formula solving with physical explanations.
         """
@@ -525,7 +519,7 @@ class StepGenerator:
 
     def _identify_derivative_rules(
         self, expr: sp.Basic, var: Symbol
-    ) -> List[Tuple[str, str]]:
+    ) -> list[tuple[str, str]]:
         """Identify which derivative rules are needed."""
         rules = []
 
@@ -586,7 +580,7 @@ class StepGenerator:
 
     def _decompose_composite(
         self, expr: sp.Basic, var: Symbol
-    ) -> Tuple[Optional[sp.Basic], Optional[str]]:
+    ) -> tuple[sp.Basic | None, str | None]:
         """Decompose composite function into inner and outer."""
         for func in expr.atoms(sp.Function):
             if func.args:
@@ -633,7 +627,7 @@ class StepGenerator:
 
         return "general"
 
-    def _suggest_substitution(self, expr: sp.Basic, var: Symbol) -> Optional[sp.Basic]:
+    def _suggest_substitution(self, expr: sp.Basic, var: Symbol) -> sp.Basic | None:
         """Suggest a u-substitution if applicable."""
         # Look for inner function in composite
         for func in expr.atoms(sp.Function):
@@ -655,13 +649,13 @@ class StepGenerator:
         """
         return f"Step {step.step_number}: {step.operation}\n    {step.latex_repr}"
 
-    def steps_to_text(self, steps: List[SolutionStep]) -> str:
+    def steps_to_text(self, steps: list[SolutionStep]) -> str:
         """
         Convert all steps to plain text.
         """
         return "\n\n".join(self.format_step_text(s) for s in steps)
 
-    def steps_to_html(self, steps: List[SolutionStep]) -> str:
+    def steps_to_html(self, steps: list[SolutionStep]) -> str:
         """
         Convert steps to HTML with MathJax-compatible LaTeX.
         """

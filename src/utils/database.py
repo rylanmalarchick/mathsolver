@@ -5,10 +5,9 @@ Stores solved equations for later reference and analysis.
 """
 
 import sqlite3
-from pathlib import Path
-from datetime import datetime
-from typing import List, Optional
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 
 @dataclass
@@ -36,7 +35,7 @@ class HistoryDatabase:
 
     DEFAULT_PATH = Path(__file__).parent.parent.parent / "data" / "history.db"
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Path | None = None):
         """
         Initialize database connection.
 
@@ -62,7 +61,7 @@ class HistoryDatabase:
                 )
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_timestamp 
+                CREATE INDEX IF NOT EXISTS idx_timestamp
                 ON solve_history(timestamp DESC)
             """)
             conn.commit()
@@ -84,7 +83,7 @@ class HistoryDatabase:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 """
-                INSERT INTO solve_history 
+                INSERT INTO solve_history
                 (raw_latex, classification, target_variable, solution_latex, solve_time_ms)
                 VALUES (?, ?, ?, ?, ?)
             """,
@@ -99,14 +98,14 @@ class HistoryDatabase:
             conn.commit()
             return cursor.lastrowid
 
-    def get_recent(self, limit: int = 20) -> List[HistoryEntry]:
+    def get_recent(self, limit: int = 20) -> list[HistoryEntry]:
         """Get the most recent entries."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(
                 """
-                SELECT * FROM solve_history 
-                ORDER BY timestamp DESC 
+                SELECT * FROM solve_history
+                ORDER BY timestamp DESC
                 LIMIT ?
             """,
                 (limit,),
@@ -125,15 +124,15 @@ class HistoryDatabase:
                 for row in cursor.fetchall()
             ]
 
-    def search(self, query: str, limit: int = 20) -> List[HistoryEntry]:
+    def search(self, query: str, limit: int = 20) -> list[HistoryEntry]:
         """Search history by LaTeX content."""
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.execute(
                 """
-                SELECT * FROM solve_history 
+                SELECT * FROM solve_history
                 WHERE raw_latex LIKE ? OR solution_latex LIKE ?
-                ORDER BY timestamp DESC 
+                ORDER BY timestamp DESC
                 LIMIT ?
             """,
                 (f"%{query}%", f"%{query}%", limit),
@@ -179,8 +178,8 @@ class HistoryDatabase:
             )
 
             by_type = conn.execute("""
-                SELECT classification, COUNT(*) as count 
-                FROM solve_history 
+                SELECT classification, COUNT(*) as count
+                FROM solve_history
                 GROUP BY classification
                 ORDER BY count DESC
             """).fetchall()

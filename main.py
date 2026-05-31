@@ -11,9 +11,9 @@ Usage:
     mathsolver --from-clipboard     # Solve equation from clipboard
 """
 
-import sys
-import os
 import argparse
+import os
+import sys
 
 # Add src to path for imports
 sys.path.insert(0, os.path.dirname(__file__))
@@ -132,10 +132,11 @@ def solve_equation_cli(
 ) -> int:
     """Solve an equation and print the result."""
     import sympy as sp
-    from src.input.parser import LatexParser, ParseError
+
     from src.classification.classifier import EquationClassifier
-    from src.solvers import get_default_registry
+    from src.input.parser import LatexParser, ParseError
     from src.models import SolveRequest
+    from src.solvers import get_default_registry
 
     # Parse equation
     parser = LatexParser()
@@ -225,14 +226,14 @@ def solve_equation_cli(
         print(json.dumps(output, indent=2))
 
     elif output_format == "latex":
-        from src.output.exporter import SolutionExporter, ExportOptions
+        from src.output.exporter import ExportOptions, SolutionExporter
 
         options = ExportOptions(include_steps=show_steps)
         exporter = SolutionExporter(solution, options)
         print(exporter.to_latex())
 
     elif output_format == "python":
-        from src.output.exporter import SolutionExporter, ExportOptions
+        from src.output.exporter import ExportOptions, SolutionExporter
 
         options = ExportOptions(include_steps=show_steps)
         exporter = SolutionExporter(solution, options)

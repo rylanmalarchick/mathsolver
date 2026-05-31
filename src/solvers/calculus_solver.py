@@ -4,42 +4,27 @@ Calculus solver for derivatives, integrals, limits, and series.
 Provides step-by-step solutions using SymPy's calculus functions.
 """
 
-from typing import List, Optional, Dict, Any, Tuple, Union
 import sympy as sp
 from sympy import (
-    Symbol,
-    Function,
     Derivative,
     Integral,
     Limit,
-    Sum,
     Product,
-    Eq,
-    diff,
-    integrate,
-    limit,
-    series,
-    summation,
-    sin,
+    Sum,
+    Symbol,
     cos,
-    tan,
+    diff,
     exp,
-    log,
-    sqrt,
-    pi,
-    E,
-    oo,
     latex,
+    log,
+    oo,
+    series,
     simplify,
-    expand,
-    factor,
-    trigsimp,
-    symbols,
-    sympify,
+    sin,
 )
 
+from ..models import Equation, EquationType, Solution, SolutionStep, SolveRequest
 from .base import BaseSolver, SolverResult
-from ..models import Equation, Solution, SolutionStep, SolveRequest, EquationType
 
 
 class CalculusSolver(BaseSolver):
@@ -83,10 +68,7 @@ class CalculusSolver(BaseSolver):
         # Check if it's a request to differentiate/integrate an expression
         # This would come from classification
         eq_type, subtype = equation.classification
-        if eq_type == EquationType.CALCULUS:
-            return True
-
-        return False
+        return eq_type == EquationType.CALCULUS
 
     def solve(self, request: SolveRequest) -> SolverResult:
         """
@@ -377,8 +359,8 @@ class CalculusSolver(BaseSolver):
         )
 
     def _generate_derivative_steps(
-        self, expr: sp.Basic, diff_vars: List[Tuple[Symbol, int]], start_step: int
-    ) -> List[SolutionStep]:
+        self, expr: sp.Basic, diff_vars: list[tuple[Symbol, int]], start_step: int
+    ) -> list[SolutionStep]:
         """
         Generate step-by-step derivative explanation.
 
@@ -391,7 +373,7 @@ class CalculusSolver(BaseSolver):
             return steps
 
         var = diff_vars[0][0]
-        order = diff_vars[0][1]
+        diff_vars[0][1]
 
         # Detect composite function (chain rule)
         if self._needs_chain_rule(expr, var):
@@ -460,7 +442,7 @@ class CalculusSolver(BaseSolver):
 
     def _generate_integral_steps(
         self, integrand: sp.Basic, var: Symbol, start_step: int
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate step-by-step integration explanation.
 
@@ -562,7 +544,7 @@ class CalculusSolver(BaseSolver):
 
     def _identify_composition(
         self, expr: sp.Basic, var: Symbol
-    ) -> Tuple[Optional[sp.Basic], Optional[sp.Basic]]:
+    ) -> tuple[sp.Basic | None, sp.Basic | None]:
         """Try to identify inner and outer functions in a composition."""
         # Check for sin(something), cos(something), etc.
         for func in expr.atoms(sp.Function):
@@ -651,8 +633,8 @@ class CalculusSolver(BaseSolver):
         self,
         expr: sp.Basic,
         var: Symbol,
-        lower: Optional[sp.Basic] = None,
-        upper: Optional[sp.Basic] = None,
+        lower: sp.Basic | None = None,
+        upper: sp.Basic | None = None,
         show_steps: bool = True,
     ) -> SolverResult:
         """

@@ -7,7 +7,6 @@ suggestions for fixes, and error recovery hints.
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional, List
 
 
 class ErrorSeverity(Enum):
@@ -29,8 +28,8 @@ class ErrorContext:
 
     title: str  # Short title for dialog/toast
     message: str  # User-friendly message
-    technical_details: Optional[str]  # Debug info (shown on expand)
-    suggestions: List[str]  # Actionable suggestions
+    technical_details: str | None  # Debug info (shown on expand)
+    suggestions: list[str]  # Actionable suggestions
     severity: ErrorSeverity
     recoverable: bool = True  # Can user retry?
 
@@ -105,16 +104,16 @@ class MathSolverError(Exception):
     """
 
     default_title = "Error"
-    default_suggestions: List[str] = []
+    default_suggestions: list[str] = []
     default_severity = ErrorSeverity.ERROR
 
     def __init__(
         self,
         message: str,
         *,
-        suggestions: Optional[List[str]] = None,
-        technical_details: Optional[str] = None,
-        severity: Optional[ErrorSeverity] = None,
+        suggestions: list[str] | None = None,
+        technical_details: str | None = None,
+        severity: ErrorSeverity | None = None,
     ):
         super().__init__(message)
         self.user_message = message
@@ -189,7 +188,7 @@ class ParseError(MathSolverError):
         message: str,
         *,
         latex: str = "",
-        suggestion: Optional[str] = None,
+        suggestion: str | None = None,
         **kwargs,
     ):
         # Add specific suggestion to front of list if provided
@@ -280,7 +279,7 @@ class UnsupportedEquationError(SolveError):
     default_title = "Unsupported Equation"
     default_severity = ErrorSeverity.WARNING
 
-    def __init__(self, equation_type: str, suggestions: Optional[List[str]] = None):
+    def __init__(self, equation_type: str, suggestions: list[str] | None = None):
         default_sugg = [
             f"Equations of type '{equation_type}' are not yet supported",
             "Try reformulating as a simpler equation",

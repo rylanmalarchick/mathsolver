@@ -4,30 +4,28 @@ History dialog for browsing and re-solving past equations.
 Provides search, filtering, and export capabilities.
 """
 
-from typing import Optional, List
-from datetime import datetime
 
-from PyQt6.QtWidgets import (
-    QDialog,
-    QVBoxLayout,
-    QHBoxLayout,
-    QLineEdit,
-    QTableWidget,
-    QTableWidgetItem,
-    QPushButton,
-    QLabel,
-    QMessageBox,
-    QHeaderView,
-    QAbstractItemView,
-    QComboBox,
-    QWidget,
-    QSplitter,
-    QTextEdit,
-    QGroupBox,
-    QFileDialog,
-)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import (
+    QAbstractItemView,
+    QComboBox,
+    QDialog,
+    QFileDialog,
+    QGroupBox,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..utils.database import HistoryDatabase, HistoryEntry
 
@@ -50,10 +48,10 @@ class HistoryDialog(QDialog):
 
     re_solve_requested = pyqtSignal(str)  # Emits the raw LaTeX to solve
 
-    def __init__(self, database: Optional[HistoryDatabase] = None, parent=None):
+    def __init__(self, database: HistoryDatabase | None = None, parent=None):
         super().__init__(parent)
         self.db = database or HistoryDatabase()
-        self.current_entries: List[HistoryEntry] = []
+        self.current_entries: list[HistoryEntry] = []
 
         self._setup_ui()
         self._load_history()
@@ -265,7 +263,7 @@ class HistoryDialog(QDialog):
         self.copy_btn.setEnabled(False)
         self.delete_btn.setEnabled(False)
 
-    def _get_selected_entry(self) -> Optional[HistoryEntry]:
+    def _get_selected_entry(self) -> HistoryEntry | None:
         """Get the currently selected entry."""
         selection = self.history_table.selectionModel().selectedRows()
         if selection:
@@ -371,7 +369,7 @@ class HistoryDialog(QDialog):
         except Exception as e:
             QMessageBox.critical(self, "Export Error", f"Failed to export: {e}")
 
-    def _export_text(self, file_path: str, entries: List[HistoryEntry]):
+    def _export_text(self, file_path: str, entries: list[HistoryEntry]):
         """Export to plain text."""
         with open(file_path, "w") as f:
             f.write("MathSolver History Export\n")
@@ -386,7 +384,7 @@ class HistoryDialog(QDialog):
                 f.write(f"Solve Time: {entry.solve_time_ms}ms\n")
                 f.write("-" * 40 + "\n\n")
 
-    def _export_csv(self, file_path: str, entries: List[HistoryEntry]):
+    def _export_csv(self, file_path: str, entries: list[HistoryEntry]):
         """Export to CSV."""
         import csv
 
@@ -415,7 +413,7 @@ class HistoryDialog(QDialog):
                     ]
                 )
 
-    def _export_latex(self, file_path: str, entries: List[HistoryEntry]):
+    def _export_latex(self, file_path: str, entries: list[HistoryEntry]):
         """Export to LaTeX document."""
         with open(file_path, "w") as f:
             f.write(r"\documentclass{article}" + "\n")
@@ -433,9 +431,9 @@ class HistoryDialog(QDialog):
                     + "}\n"
                 )
                 f.write(f"\\textbf{{Type:}} {entry.classification}\n\n")
-                f.write(f"\\textbf{{Equation:}}\n")
+                f.write("\\textbf{Equation:}\n")
                 f.write(f"\\[ {entry.raw_latex} \\]\n\n")
-                f.write(f"\\textbf{{Solution:}}\n")
+                f.write("\\textbf{Solution:}\n")
                 f.write(f"\\[ {entry.solution_latex} \\]\n\n")
                 f.write(r"\hrule" + "\n\n")
 

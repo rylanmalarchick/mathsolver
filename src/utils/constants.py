@@ -6,7 +6,6 @@ Standard SI values for physics calculations.
 
 import sympy as sp
 
-
 # Physical constants as SymPy symbols with numerical values
 # These can be substituted into expressions for numerical evaluation
 
