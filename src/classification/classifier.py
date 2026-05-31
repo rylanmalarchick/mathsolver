@@ -4,21 +4,21 @@ Equation classifier for routing to specialized solvers.
 Priority-based classification that checks specialized patterns first.
 """
 
-from typing import Tuple, Optional, List
+import logging
+
 import sympy as sp
 from sympy import (
     Derivative,
+    Eq,
     Integral,
     Matrix,
     MatrixSymbol,
-    Function,
-    Eq,
-    Symbol,
-    Piecewise,
 )
 
 from ..models import Equation, EquationType
-from .physics_patterns import PhysicsPatternLibrary, PatternMatch
+from .physics_patterns import PatternMatch, PhysicsPatternLibrary
+
+logger = logging.getLogger(__name__)
 
 
 class EquationClassifier:
@@ -38,7 +38,7 @@ class EquationClassifier:
         eq_type, subtype = classifier.classify(equation)
     """
 
-    def __init__(self, physics_library: Optional[PhysicsPatternLibrary] = None):
+    def __init__(self, physics_library: PhysicsPatternLibrary | None = None):
         """
         Initialize classifier with pattern libraries.
 
@@ -46,7 +46,7 @@ class EquationClassifier:
             physics_library: PhysicsPatternLibrary instance (creates default if None)
         """
         self._physics_library = physics_library
-        self._last_physics_match: Optional[PatternMatch] = None
+        self._last_physics_match: PatternMatch | None = None
 
     @property
     def physics_library(self) -> PhysicsPatternLibrary:
@@ -56,11 +56,11 @@ class EquationClassifier:
         return self._physics_library
 
     @property
-    def last_physics_match(self) -> Optional[PatternMatch]:
+    def last_physics_match(self) -> PatternMatch | None:
         """Get the last physics pattern match (for solver use)."""
         return self._last_physics_match
 
-    def classify(self, equation: Equation) -> Tuple[EquationType, Optional[str]]:
+    def classify(self, equation: Equation) -> tuple[EquationType, str | None]:
         """
         Classify an equation by type.
 
@@ -104,7 +104,7 @@ class EquationClassifier:
         # Fallback to general
         return (EquationType.GENERAL, None)
 
-    def _check_physics_patterns(self, expr: sp.Basic) -> Optional[str]:
+    def _check_physics_patterns(self, expr: sp.Basic) -> str | None:
         """
         Check if expression matches a known physics formula.
 
@@ -117,13 +117,14 @@ class EquationClassifier:
                 self._last_physics_match = match
                 return match.formula.id
         except Exception:
-            # Pattern matching failed, continue to other classifiers
-            pass
+            # sympy pattern matching raises arbitrary types on odd input;
+            # treat any failure as "not a physics match" and fall through.
+            logger.debug("physics pattern matching failed", exc_info=True)
 
         self._last_physics_match = None
         return None
 
-    def _check_differential(self, expr: sp.Basic) -> Optional[str]:
+    def _check_differential(self, expr: sp.Basic) -> str | None:
         """
         Check for differential equations.
 
@@ -172,7 +173,7 @@ class EquationClassifier:
         else:
             return f"ode_order_{max_order}"
 
-    def _check_calculus(self, expr: sp.Basic) -> Optional[str]:
+    def _check_calculus(self, expr: sp.Basic) -> str | None:
         """Check for calculus operations (derivatives, integrals, limits)."""
         # Check for derivative expressions (to be computed, not ODEs)
         if expr.has(Derivative):
@@ -196,7 +197,7 @@ class EquationClassifier:
 
         return None
 
-    def _check_linear_algebra(self, expr: sp.Basic) -> Optional[str]:
+    def _check_linear_algebra(self, expr: sp.Basic) -> str | None:
         """Check for linear algebra operations."""
         if isinstance(expr, (Matrix, MatrixSymbol)):
             return "matrix"
@@ -205,13 +206,12 @@ class EquationClassifier:
             return "matrix_expr"
 
         # Check if it's a system of equations (list of Eq)
-        if isinstance(expr, (list, tuple)):
-            if all(isinstance(e, Eq) for e in expr):
-                return "system"
+        if isinstance(expr, (list, tuple)) and all(isinstance(e, Eq) for e in expr):
+            return "system"
 
         return None
 
-    def _check_polynomial(self, expr: sp.Basic) -> Optional[str]:
+    def _check_polynomial(self, expr: sp.Basic) -> str | None:
         """Check if expression is polynomial."""
         # Handle equations
         if isinstance(expr, Eq):
@@ -265,7 +265,7 @@ class EquationClassifier:
         )
         return any(expr.has(f) for f in trig_funcs)
 
-    def get_variables(self, equation: Equation) -> List[sp.Symbol]:
+    def get_variables(self, equation: Equation) -> list[sp.Symbol]:
         """
         Get solvable variables from an equation.
 

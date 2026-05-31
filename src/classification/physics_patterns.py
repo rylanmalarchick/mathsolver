@@ -6,11 +6,12 @@ using SymPy structural pattern matching.
 """
 
 import json
-from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
 import sympy as sp
-from sympy import Wild, Symbol, Eq, sin, cos, sqrt, pi, log, exp
+from sympy import Eq, Symbol, Wild, cos, exp, log, pi, sin, sqrt
 
 
 @dataclass
@@ -23,15 +24,15 @@ class PhysicsFormula:
     subcategory: str
     latex: str
     sympy_template: str
-    variables: List[str]
-    constants: Dict[str, Dict[str, Any]]
-    units: Dict[str, str]
+    variables: list[str]
+    constants: dict[str, dict[str, Any]]
+    units: dict[str, str]
     description: str
-    solve_templates: Dict[str, str] = field(default_factory=dict)
-    steps: Dict[str, List[str]] = field(default_factory=dict)
+    solve_templates: dict[str, str] = field(default_factory=dict)
+    steps: dict[str, list[str]] = field(default_factory=dict)
 
     # Cached SymPy expression (built lazily)
-    _sympy_expr: Optional[sp.Basic] = field(default=None, repr=False)
+    _sympy_expr: sp.Basic | None = field(default=None, repr=False)
 
     def get_sympy_expr(self) -> sp.Basic:
         """Get the SymPy expression for this formula."""
@@ -60,11 +61,12 @@ class PhysicsFormula:
         try:
             expr = sp.sympify(self.sympy_template, locals=namespace)
             return expr
-        except Exception as e:
-            # Fallback to basic parsing
+        except Exception:
+            # sympify of a stored template can raise arbitrary types when the
+            # namespace is incomplete; retry without the custom locals.
             return sp.sympify(self.sympy_template)
 
-    def get_constant_values(self) -> Dict[Symbol, float]:
+    def get_constant_values(self) -> dict[Symbol, float]:
         """Get a dict mapping constant symbols to their values."""
         return {Symbol(name): info["value"] for name, info in self.constants.items()}
 
@@ -75,7 +77,7 @@ class PatternMatch:
 
     formula: PhysicsFormula
     confidence: float  # 0.0 to 1.0
-    variable_mapping: Dict[Symbol, sp.Basic]  # Maps template vars to user vars
+    variable_mapping: dict[Symbol, sp.Basic]  # Maps template vars to user vars
     matched_structure: bool  # True if structure matched exactly
 
 
@@ -96,7 +98,7 @@ class PhysicsPatternLibrary:
         Path(__file__).parent.parent.parent / "config" / "physics_formulas.json"
     )
 
-    def __init__(self, formulas_path: Optional[Path] = None):
+    def __init__(self, formulas_path: Path | None = None):
         """
         Load formulas from JSON file.
 
@@ -104,9 +106,9 @@ class PhysicsPatternLibrary:
             formulas_path: Path to physics_formulas.json
         """
         self.path = formulas_path or self.DEFAULT_PATH
-        self.formulas: List[PhysicsFormula] = []
-        self._by_id: Dict[str, PhysicsFormula] = {}
-        self._by_category: Dict[str, List[PhysicsFormula]] = {}
+        self.formulas: list[PhysicsFormula] = []
+        self._by_id: dict[str, PhysicsFormula] = {}
+        self._by_category: dict[str, list[PhysicsFormula]] = {}
 
         self._load_formulas()
 
@@ -115,7 +117,7 @@ class PhysicsPatternLibrary:
         if not self.path.exists():
             raise FileNotFoundError(f"Physics formulas not found: {self.path}")
 
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             data = json.load(f)
 
         for formula_data in data.get("formulas", []):
@@ -142,7 +144,7 @@ class PhysicsPatternLibrary:
                 self._by_category[formula.category] = []
             self._by_category[formula.category].append(formula)
 
-    def match(self, expr: sp.Basic) -> Optional[PatternMatch]:
+    def match(self, expr: sp.Basic) -> PatternMatch | None:
         """
         Find the best matching physics formula for an expression.
 
@@ -152,7 +154,7 @@ class PhysicsPatternLibrary:
         Returns:
             PatternMatch if found, None otherwise
         """
-        best_match: Optional[PatternMatch] = None
+        best_match: PatternMatch | None = None
         best_confidence = 0.0
 
         for formula in self.formulas:
@@ -169,7 +171,7 @@ class PhysicsPatternLibrary:
 
     def _try_match(
         self, expr: sp.Basic, formula: PhysicsFormula
-    ) -> Optional[PatternMatch]:
+    ) -> PatternMatch | None:
         """
         Try to match an expression against a single formula.
 
@@ -197,7 +199,7 @@ class PhysicsPatternLibrary:
 
     def _wild_match(
         self, expr: sp.Basic, template: sp.Basic, formula: PhysicsFormula
-    ) -> Optional[PatternMatch]:
+    ) -> PatternMatch | None:
         """
         Match using SymPy Wild symbols.
 
@@ -223,10 +225,7 @@ class PhysicsPatternLibrary:
             return None
 
         # Handle equation form (expr should equal 0)
-        if isinstance(expr, Eq):
-            expr_normalized = expr.lhs - expr.rhs
-        else:
-            expr_normalized = expr
+        expr_normalized = expr.lhs - expr.rhs if isinstance(expr, Eq) else expr
 
         # Try to match
         match_result = expr_normalized.match(pattern)
@@ -267,7 +266,7 @@ class PhysicsPatternLibrary:
         wild_symbols: dict,
         expr: sp.Basic,
         formula: PhysicsFormula,
-    ) -> Tuple[float, Dict[Symbol, sp.Basic]]:
+    ) -> tuple[float, dict[Symbol, sp.Basic]]:
         """
         Score a Wild pattern match based on quality criteria.
 
@@ -291,7 +290,7 @@ class PhysicsPatternLibrary:
         simple_matches = 0
         total_wilds = len(wild_symbols)
 
-        for name, wild in wild_symbols.items():
+        for _name, wild in wild_symbols.items():
             matched_value = match_result.get(wild)
             if matched_value is not None:
                 # Check if matched value is a simple symbol or a complex expression
@@ -324,12 +323,12 @@ class PhysicsPatternLibrary:
             match_ratio = len(matching_names) / max(len(formula_symbols), 1)
             confidence += 0.15 * match_ratio
 
-        # Criterion 3: Perfect symbol count match bonus
-        if len(expr_symbol_names) == len(formula_symbols):
-            # Same number of symbols
-            if matching_names == expr_symbol_names:
-                # AND all names match - very high confidence
-                confidence += 0.10
+        # Criterion 3: perfect symbol-count match with all names matching
+        if (
+            len(expr_symbol_names) == len(formula_symbols)
+            and matching_names == expr_symbol_names
+        ):
+            confidence += 0.10
 
         return confidence, var_mapping
 
@@ -337,7 +336,7 @@ class PhysicsPatternLibrary:
 
     def _structural_match(
         self, expr: sp.Basic, template: sp.Basic, formula: PhysicsFormula
-    ) -> Optional[PatternMatch]:
+    ) -> PatternMatch | None:
         """
         Match based on structural similarity.
 
@@ -414,7 +413,7 @@ class PhysicsPatternLibrary:
 
     def _heuristic_var_mapping(
         self, expr: sp.Basic, formula: PhysicsFormula
-    ) -> Dict[Symbol, sp.Basic]:
+    ) -> dict[Symbol, sp.Basic]:
         """
         Attempt to map formula variables to expression symbols.
 
@@ -440,15 +439,15 @@ class PhysicsPatternLibrary:
 
         return mapping
 
-    def get_by_id(self, formula_id: str) -> Optional[PhysicsFormula]:
+    def get_by_id(self, formula_id: str) -> PhysicsFormula | None:
         """Get a formula by its ID."""
         return self._by_id.get(formula_id)
 
-    def get_by_category(self, category: str) -> List[PhysicsFormula]:
+    def get_by_category(self, category: str) -> list[PhysicsFormula]:
         """Get all formulas in a category."""
         return self._by_category.get(category, [])
 
-    def search(self, query: str) -> List[PhysicsFormula]:
+    def search(self, query: str) -> list[PhysicsFormula]:
         """Search formulas by name or description."""
         query_lower = query.lower()
         results = []
@@ -464,7 +463,7 @@ class PhysicsPatternLibrary:
         return results
 
     @property
-    def categories(self) -> List[str]:
+    def categories(self) -> list[str]:
         """Get list of all categories."""
         return list(self._by_category.keys())
 

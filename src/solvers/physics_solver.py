@@ -5,13 +5,21 @@ Uses the PhysicsPatternLibrary to match equations against known physics
 formulas and provides step-by-step solutions with physical explanations.
 """
 
-from typing import List, Optional, Dict, Any
-import sympy as sp
-from sympy import Symbol, Eq, latex, sqrt, sin, cos, pi, log, exp
+import logging
+from typing import Any
 
+import sympy as sp
+from sympy import Eq, Symbol, cos, exp, latex, log, pi, sin, sqrt
+
+from ..classification.physics_patterns import (
+    PatternMatch,
+    PhysicsFormula,
+    PhysicsPatternLibrary,
+)
+from ..models import Equation, EquationType, Solution, SolutionStep, SolveRequest
 from .base import BaseSolver, SolverResult
-from ..models import Equation, Solution, SolutionStep, SolveRequest, EquationType
-from ..classification.physics_patterns import PhysicsPatternLibrary, PatternMatch
+
+logger = logging.getLogger(__name__)
 
 
 class PhysicsSolver(BaseSolver):
@@ -28,7 +36,7 @@ class PhysicsSolver(BaseSolver):
     name = "PhysicsSolver"
     description = "Physics formula solver with template matching"
 
-    def __init__(self, library: Optional[PhysicsPatternLibrary] = None):
+    def __init__(self, library: PhysicsPatternLibrary | None = None):
         """
         Initialize with physics formula library.
 
@@ -135,8 +143,8 @@ class PhysicsSolver(BaseSolver):
         return SolverResult.from_solution(solution, solver_name=self.name)
 
     def _resolve_target_variable(
-        self, target: Optional[Symbol], formula: "PhysicsFormula", match: PatternMatch
-    ) -> Optional[str]:
+        self, target: Symbol | None, formula: "PhysicsFormula", match: PatternMatch
+    ) -> str | None:
         """
         Resolve target variable to a formula variable name.
 
@@ -200,7 +208,7 @@ class PhysicsSolver(BaseSolver):
         target_name: str,
         match: PatternMatch,
         request: SolveRequest,
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate physics-specific solution steps.
 
@@ -251,7 +259,7 @@ class PhysicsSolver(BaseSolver):
                     step_number=step_num,
                     operation=f"Rearrange to isolate {target_name}",
                     equation_state=sp.Symbol("_"),
-                    latex_repr=f"\\text{{Algebraic rearrangement}}",
+                    latex_repr="\\text{Algebraic rearrangement}",
                 )
             )
             step_num += 1
@@ -273,8 +281,8 @@ class PhysicsSolver(BaseSolver):
         return steps
 
     def _build_namespace(
-        self, formula: "PhysicsFormula", exclude_var: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, formula: "PhysicsFormula", exclude_var: str | None = None
+    ) -> dict[str, Any]:
         """Build a namespace for sympify with all variables and constants."""
         namespace = {}
 
@@ -295,9 +303,9 @@ class PhysicsSolver(BaseSolver):
         self,
         solution_expr: sp.Basic,
         formula: "PhysicsFormula",
-        user_values: Dict[Symbol, float],
+        user_values: dict[Symbol, float],
         match: PatternMatch,
-    ) -> Optional[float]:
+    ) -> float | None:
         """
         Evaluate the solution numerically.
 
@@ -331,7 +339,7 @@ class PhysicsSolver(BaseSolver):
                 for user_sym, value in user_values.items():
                     # Check if this maps to a template variable
                     mapped = False
-                    for template_sym, mapped_sym in match.variable_mapping.items():
+                    for _template_sym, mapped_sym in match.variable_mapping.items():
                         if str(mapped_sym) == str(user_sym):
                             # Use the actual symbol from the expression
                             sym_name = str(mapped_sym)
@@ -359,9 +367,12 @@ class PhysicsSolver(BaseSolver):
             return None
 
         except Exception:
+            # sympy .subs/.evalf raises arbitrary types; numerical evaluation
+            # is optional, so report "no numeric value" rather than crashing.
+            logger.debug("physics numerical evaluation failed", exc_info=True)
             return None
 
-    def get_formula_info(self, formula_id: str) -> Optional[Dict[str, Any]]:
+    def get_formula_info(self, formula_id: str) -> dict[str, Any] | None:
         """
         Get detailed information about a formula.
 
@@ -391,7 +402,7 @@ class PhysicsSolver(BaseSolver):
             "can_solve_for": list(formula.solve_templates.keys()),
         }
 
-    def list_formulas_by_category(self, category: str) -> List[Dict[str, str]]:
+    def list_formulas_by_category(self, category: str) -> list[dict[str, str]]:
         """List all formulas in a category with basic info."""
         formulas = self.library.get_by_category(category)
         return [
@@ -400,6 +411,6 @@ class PhysicsSolver(BaseSolver):
         ]
 
     @property
-    def categories(self) -> List[str]:
+    def categories(self) -> list[str]:
         """Get all available formula categories."""
         return self.library.categories

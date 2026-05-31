@@ -4,28 +4,24 @@ ODE (Ordinary Differential Equation) solver.
 Uses SymPy's dsolve with classification and method-specific step generation.
 """
 
-from typing import List, Optional, Dict, Any, Tuple
+import logging
+from typing import Any
+
 import sympy as sp
 from sympy import (
-    Symbol,
-    Function,
     Derivative,
     Eq,
-    dsolve,
-    classify_ode,
-    symbols,
-    exp,
-    sin,
-    cos,
-    log,
-    sqrt,
-    latex,
-    simplify,
+    Function,
+    Symbol,
     checkodesol,
+    classify_ode,
+    dsolve,
 )
 
+from ..models import Equation, Solution, SolutionStep, SolveRequest
 from .base import BaseSolver, SolverResult
-from ..models import Equation, Solution, SolutionStep, SolveRequest, EquationType
+
+logger = logging.getLogger(__name__)
 
 
 # ODE classification to human-readable descriptions
@@ -118,10 +114,7 @@ class ODESolver(BaseSolver):
             )
 
         # Convert to equation form if needed
-        if isinstance(expr, Eq):
-            ode_eq = expr
-        else:
-            ode_eq = Eq(expr, 0)
+        ode_eq = expr if isinstance(expr, Eq) else Eq(expr, 0)
 
         # Classify the ODE
         try:
@@ -131,6 +124,9 @@ class ODESolver(BaseSolver):
             else:
                 classification_list = list(classifications) if classifications else []
         except Exception:
+            # sympy.classify_ode raises arbitrary types on unusual input;
+            # an empty classification list degrades to the generic path.
+            logger.debug("ODE classification failed", exc_info=True)
             classification_list = []
 
         # Determine ODE order
@@ -228,7 +224,7 @@ class ODESolver(BaseSolver):
 
     def _extract_ode_variables(
         self, expr: sp.Basic
-    ) -> Tuple[Optional[Function], Optional[Symbol]]:
+    ) -> tuple[Function | None, Symbol | None]:
         """
         Extract the dependent function and independent variable from an ODE.
 
@@ -272,7 +268,7 @@ class ODESolver(BaseSolver):
         indep_var: Symbol,
         method: str,
         start_step: int,
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate method-specific solution steps.
         """
@@ -308,12 +304,11 @@ class ODESolver(BaseSolver):
 
     def _separable_steps(
         self, ode_eq: Eq, dep_func: Function, indep_var: Symbol, start_step: int
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """Generate steps for separable ODEs."""
         steps = []
         step_num = start_step
-        y = Symbol("y")
-        x = indep_var
+        Symbol("y")
 
         steps.append(
             SolutionStep(
@@ -348,11 +343,10 @@ class ODESolver(BaseSolver):
 
     def _first_order_linear_steps(
         self, ode_eq: Eq, dep_func: Function, indep_var: Symbol, start_step: int
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """Generate steps for first-order linear ODEs."""
         steps = []
         step_num = start_step
-        x = indep_var
 
         steps.append(
             SolutionStep(
@@ -397,7 +391,7 @@ class ODESolver(BaseSolver):
 
     def _constant_coeff_steps(
         self, ode_eq: Eq, dep_func: Function, indep_var: Symbol, start_step: int
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """Generate steps for constant coefficient linear ODEs."""
         steps = []
         step_num = start_step
@@ -435,7 +429,7 @@ class ODESolver(BaseSolver):
 
     def _exact_equation_steps(
         self, ode_eq: Eq, dep_func: Function, indep_var: Symbol, start_step: int
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """Generate steps for exact equations."""
         steps = []
         step_num = start_step
@@ -482,7 +476,7 @@ class ODESolver(BaseSolver):
         return steps
 
     def solve_ivp(
-        self, request: SolveRequest, initial_conditions: Dict[Any, float]
+        self, request: SolveRequest, initial_conditions: dict[Any, float]
     ) -> SolverResult:
         """
         Solve ODE with initial value conditions.
@@ -522,7 +516,7 @@ class ODESolver(BaseSolver):
 
         return result
 
-    def get_classification_info(self, equation: Equation) -> Dict[str, Any]:
+    def get_classification_info(self, equation: Equation) -> dict[str, Any]:
         """
         Get detailed classification information for an ODE.
 
@@ -534,10 +528,7 @@ class ODESolver(BaseSolver):
         if dep_func is None:
             return {"error": "Not a valid ODE"}
 
-        if isinstance(expr, Eq):
-            ode_eq = expr
-        else:
-            ode_eq = Eq(expr, 0)
+        ode_eq = expr if isinstance(expr, Eq) else Eq(expr, 0)
 
         try:
             classifications = classify_ode(ode_eq, dep_func)

@@ -5,14 +5,13 @@ Converts LaTeX strings to SymPy expression trees for symbolic manipulation.
 """
 
 import re
-from typing import Optional, Tuple, List
+
 import sympy as sp
 from sympy.parsing.latex import parse_latex
 from sympy.parsing.latex.errors import LaTeXParsingError
 
-from ..models import Equation, EquationType
-from ..utils.errors import ParseError, UnbalancedBracesError
-
+from ..models import Equation
+from ..utils.errors import ParseError
 
 # Patterns that indicate potentially dangerous input (code injection attempts)
 _DANGEROUS_PATTERNS = [
@@ -110,15 +109,15 @@ class LatexParser:
                         f"Failed to parse LaTeX: {e}",
                         latex=latex,
                         suggestion=self._suggest_fix(latex, str(e)),
-                    )
+                    ) from e
             else:
                 raise ParseError(
                     f"Failed to parse LaTeX: {e}",
                     latex=latex,
                     suggestion=self._suggest_fix(latex, str(e)),
-                )
+                ) from e
         except Exception as e:
-            raise ParseError(f"Unexpected parsing error: {e}", latex=latex)
+            raise ParseError(f"Unexpected parsing error: {e}", latex=latex) from e
 
         # Build Equation object
         return Equation(raw_latex=latex, sympy_expr=expr, ocr_confidence=ocr_confidence)
@@ -145,7 +144,7 @@ class LatexParser:
             result = re.sub(pattern, replacement, result)
         return result
 
-    def _suggest_fix(self, latex: str, error_msg: str) -> Optional[str]:
+    def _suggest_fix(self, latex: str, error_msg: str) -> str | None:
         """
         Suggest a fix based on the error message.
         """
@@ -165,7 +164,7 @@ class LatexParser:
 
         return None
 
-    def try_parse(self, latex: str) -> Tuple[Optional[Equation], Optional[str]]:
+    def try_parse(self, latex: str) -> tuple[Equation | None, str | None]:
         """
         Attempt to parse, returning None on failure instead of raising.
 
@@ -205,10 +204,10 @@ class LatexParser:
 
         # Use SymPy's sympify with transformations
         from sympy.parsing.sympy_parser import (
+            convert_xor,
+            implicit_multiplication_application,
             parse_expr,
             standard_transformations,
-            implicit_multiplication_application,
-            convert_xor,
         )
 
         transformations = standard_transformations + (
@@ -253,14 +252,14 @@ class LatexParser:
                 )
                 expr = sp.Eq(lhs_expr, rhs_expr)
             except Exception as e:
-                raise ParseError(f"Failed to parse plain text: {e}", latex=text)
+                raise ParseError(f"Failed to parse plain text: {e}", latex=text) from e
         else:
             try:
                 expr = parse_expr(
                     text.strip(), local_dict=local_dict, transformations=transformations
                 )
             except Exception as e:
-                raise ParseError(f"Failed to parse plain text: {e}", latex=text)
+                raise ParseError(f"Failed to parse plain text: {e}", latex=text) from e
 
         return Equation(
             raw_latex=sp.latex(expr),  # Generate LaTeX from parsed expr

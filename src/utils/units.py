@@ -5,9 +5,10 @@ Provides unit parsing, conversion, and dimensionality checking
 for physics calculations in MathSolver.
 """
 
-from typing import Optional, Dict, Any, Tuple, Union
-from dataclasses import dataclass
+import contextlib
 import re
+from dataclasses import dataclass
+from typing import Any
 
 # Try to import Pint, provide fallback if not installed
 try:
@@ -17,6 +18,17 @@ try:
 except ImportError:
     PINT_AVAILABLE = False
     pint = None
+
+# Errors Pint raises for unknown units, incompatible dimensions, or bad values.
+if PINT_AVAILABLE:
+    _PINT_ERRORS = (
+        pint.errors.UndefinedUnitError,
+        pint.errors.DimensionalityError,
+        ValueError,
+        TypeError,
+    )
+else:
+    _PINT_ERRORS = (ValueError, TypeError)
 
 
 @dataclass
@@ -114,19 +126,17 @@ class UnitHandler:
         if self._ureg is None:
             return
 
-        # Natural units and particle physics
-        try:
-            # Speed of light (already in Pint as 'c')
+        # Natural units and particle physics. Ignore redefinition if the unit
+        # already exists in the registry.
+        with contextlib.suppress(pint.errors.RedefinitionError):
             self._ureg.define("natural_length = hbar * c / eV")
-        except pint.errors.RedefinitionError:
-            pass
 
     @property
     def available(self) -> bool:
         """Check if Pint is available for full unit support."""
         return PINT_AVAILABLE and self._ureg is not None
 
-    def parse(self, value_str: str) -> Optional[UnitValue]:
+    def parse(self, value_str: str) -> UnitValue | None:
         """
         Parse a string with value and units.
 
@@ -169,8 +179,8 @@ class UnitHandler:
                     unit_str=str(quantity.units),
                     _quantity=quantity,
                 )
-            except Exception:
-                # Fall through to basic parsing
+            except _PINT_ERRORS:
+                # Unknown/invalid unit: fall through to basic parsing
                 pass
 
         # Basic fallback (no Pint)
@@ -197,12 +207,12 @@ class UnitHandler:
                     unit_str=str(quantity.units),
                     _quantity=quantity,
                 )
-            except Exception:
+            except _PINT_ERRORS:
                 pass
 
         return UnitValue(magnitude=magnitude, unit_str=unit_str)
 
-    def convert(self, value: UnitValue, target_unit: str) -> Optional[UnitValue]:
+    def convert(self, value: UnitValue, target_unit: str) -> UnitValue | None:
         """
         Convert a value to different units.
 
@@ -225,10 +235,10 @@ class UnitHandler:
                 unit_str=str(converted.units),
                 _quantity=converted,
             )
-        except Exception:
+        except _PINT_ERRORS:
             return None
 
-    def to_si(self, value: UnitValue) -> Optional[UnitValue]:
+    def to_si(self, value: UnitValue) -> UnitValue | None:
         """
         Convert value to SI base units.
 
@@ -248,7 +258,7 @@ class UnitHandler:
                 unit_str=str(converted.units),
                 _quantity=converted,
             )
-        except Exception:
+        except _PINT_ERRORS:
             return value
 
     def check_dimensionality(self, value1: UnitValue, value2: UnitValue) -> bool:
@@ -267,7 +277,7 @@ class UnitHandler:
 
         return value1._quantity.dimensionality == value2._quantity.dimensionality
 
-    def get_dimensionality(self, unit_str: str) -> Optional[str]:
+    def get_dimensionality(self, unit_str: str) -> str | None:
         """
         Get the dimensionality of a unit string.
 
@@ -285,7 +295,7 @@ class UnitHandler:
         try:
             unit = self._ureg.Unit(unit_str)
             return str(unit.dimensionality)
-        except Exception:
+        except _PINT_ERRORS:
             return None
 
     def format_with_unit(
@@ -316,7 +326,7 @@ class UnitHandler:
 
     def validate_physics_units(
         self, variable_name: str, value: UnitValue, expected_unit: str
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Validate that a value has the expected physical units.
 
@@ -344,13 +354,13 @@ class UnitHandler:
 
             return True, ""
 
-        except Exception as e:
+        except _PINT_ERRORS as e:
             return False, f"Could not validate units: {e}"
 
 
 # Module-level convenience functions
 
-_handler: Optional[UnitHandler] = None
+_handler: UnitHandler | None = None
 
 
 def get_handler() -> UnitHandler:
@@ -361,12 +371,12 @@ def get_handler() -> UnitHandler:
     return _handler
 
 
-def parse_value(value_str: str) -> Optional[UnitValue]:
+def parse_value(value_str: str) -> UnitValue | None:
     """Parse a value string with units."""
     return get_handler().parse(value_str)
 
 
-def convert_units(magnitude: float, from_unit: str, to_unit: str) -> Optional[float]:
+def convert_units(magnitude: float, from_unit: str, to_unit: str) -> float | None:
     """
     Convert a magnitude from one unit to another.
 

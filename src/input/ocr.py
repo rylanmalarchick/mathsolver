@@ -6,7 +6,7 @@ confidence estimation and error handling.
 """
 
 import time
-from typing import Tuple, Optional
+
 from PIL import Image
 
 from ..models import OCRResult
@@ -54,9 +54,9 @@ class OCREngine:
             raise OCRError(
                 "pix2tex not installed. Run: pip install 'pix2tex[gui]'\n"
                 f"Original error: {e}"
-            )
+            ) from e
         except Exception as e:
-            raise OCRError(f"Failed to load OCR model: {e}")
+            raise OCRError(f"Failed to load OCR model: {e}") from e
 
     def image_to_latex(self, image: Image.Image) -> OCRResult:
         """
@@ -81,7 +81,7 @@ class OCREngine:
             # pix2tex expects PIL Image directly
             latex = self._model(image)
         except Exception as e:
-            raise OCRError(f"OCR processing failed: {e}")
+            raise OCRError(f"OCR processing failed: {e}") from e
 
         elapsed_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -167,10 +167,7 @@ class MockOCREngine:
         # Use image dimensions to vary output (for testing)
         w, h = image.size
 
-        if w > h:
-            latex = r"E = mc^2"
-        else:
-            latex = r"\frac{d}{dx} x^2 = 2x"
+        latex = r"E = mc^2" if w > h else r"\frac{d}{dx} x^2 = 2x"
 
         return OCRResult(latex=latex, confidence=0.95, processing_time_ms=50)
 

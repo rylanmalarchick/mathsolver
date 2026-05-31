@@ -5,12 +5,15 @@ Handles algebraic equations, polynomial solving, and general symbolic math.
 This is the fallback solver when no specialized solver matches.
 """
 
-from typing import List, Optional, Union
-import sympy as sp
-from sympy import Eq, Symbol, solve, simplify, latex
+import logging
 
+import sympy as sp
+from sympy import Eq, Symbol, latex, simplify, solve
+
+from ..models import Equation, Solution, SolutionStep, SolveRequest
 from .base import BaseSolver, SolverResult
-from ..models import Equation, Solution, SolutionStep, SolveRequest, EquationType
+
+logger = logging.getLogger(__name__)
 
 
 class GeneralSolver(BaseSolver):
@@ -38,10 +41,7 @@ class GeneralSolver(BaseSolver):
         expr = equation.sympy_expr
 
         # Can't solve if no free symbols (nothing to solve for)
-        if not expr.free_symbols:
-            return False
-
-        return True
+        return expr.free_symbols
 
     def solve(self, request: SolveRequest) -> SolverResult:
         """
@@ -71,11 +71,10 @@ class GeneralSolver(BaseSolver):
         if isinstance(expr, Eq):
             eq_to_solve = expr
             # Show as "equation = 0" form
-            zero_form = expr.lhs - expr.rhs
+            expr.lhs - expr.rhs
         else:
             # Treat expression as "expr = 0"
             eq_to_solve = Eq(expr, 0)
-            zero_form = expr
             steps.append(
                 self._create_step(step_num, "Set expression equal to zero", eq_to_solve)
             )
@@ -156,7 +155,9 @@ class GeneralSolver(BaseSolver):
                         final_expr.subs(request.numerical_values).evalf()
                     )
             except Exception:
-                pass  # Numerical evaluation failed, leave as None
+                # sympy .subs/.evalf can raise arbitrary types; numerical
+                # evaluation is optional, so leave the result as None.
+                logger.debug("numerical evaluation failed", exc_info=True)
 
         return SolverResult.from_solution(solution, solver_name=self.name)
 
@@ -166,7 +167,7 @@ class GeneralSolver(BaseSolver):
         target: Symbol,
         solution: sp.Basic,
         start_step: int,
-    ) -> List[SolutionStep]:
+    ) -> list[SolutionStep]:
         """
         Generate intermediate algebraic steps.
 

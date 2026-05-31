@@ -5,14 +5,12 @@ Detects available screenshot tools and provides a unified interface.
 Supports: gnome-screenshot, spectacle (KDE), maim, scrot, flameshot.
 """
 
-import subprocess
 import os
-import time
-from pathlib import Path
-from typing import Optional, List, Tuple
+import subprocess
+
 from PIL import Image
 
-from ..utils.errors import ScreenshotError, ScreenshotCancelledError
+from ..utils.errors import ScreenshotCancelledError, ScreenshotError
 
 
 class ScreenshotCapture:
@@ -29,7 +27,7 @@ class ScreenshotCapture:
 
     # Tool name -> command template
     # {output} will be replaced with the output path
-    TOOLS: dict[str, List[str]] = {
+    TOOLS: dict[str, list[str]] = {
         "flameshot": ["flameshot", "gui", "--raw", "-p", "{output}"],
         "gnome-screenshot": ["gnome-screenshot", "-a", "-f", "{output}"],
         "spectacle": ["spectacle", "-r", "-b", "-n", "-o", "{output}"],
@@ -39,7 +37,7 @@ class ScreenshotCapture:
 
     DEFAULT_OUTPUT = "/tmp/mathsolver_capture.png"
 
-    def __init__(self, preferred_tool: Optional[str] = None):
+    def __init__(self, preferred_tool: str | None = None):
         """
         Initialize screenshot capture.
 
@@ -84,14 +82,14 @@ class ScreenshotCapture:
         result = subprocess.run(["which", tool_name], capture_output=True, text=True)
         return result.returncode == 0
 
-    def _detect_available_tool(self) -> Optional[str]:
+    def _detect_available_tool(self) -> str | None:
         """Detect first available screenshot tool."""
-        for tool_name in self.TOOLS.keys():
+        for tool_name in self.TOOLS:
             if self._tool_available(tool_name):
                 return tool_name
         return None
 
-    def capture_area(self, output_path: Optional[str] = None) -> Image.Image:
+    def capture_area(self, output_path: str | None = None) -> Image.Image:
         """
         Launch area selection and capture screenshot.
 
@@ -117,11 +115,11 @@ class ScreenshotCapture:
         # Execute screenshot tool
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
             raise ScreenshotError(
                 "Screenshot tool timed out after 60 seconds",
                 suggestions=["Try again and select an area more quickly"],
-            )
+            ) from e
 
         # Check for errors
         if result.returncode != 0:
@@ -157,15 +155,15 @@ class ScreenshotCapture:
             return image
         except Exception as e:
             raise ScreenshotError(
-                f"Failed to load screenshot image",
+                "Failed to load screenshot image",
                 technical_details=str(e),
                 suggestions=[
                     "The captured image may be corrupted",
                     "Try capturing again",
                 ],
-            )
+            ) from e
 
-    def capture_fullscreen(self, output_path: Optional[str] = None) -> Image.Image:
+    def capture_fullscreen(self, output_path: str | None = None) -> Image.Image:
         """
         Capture the full screen (no selection).
 
@@ -183,9 +181,9 @@ class ScreenshotCapture:
         return self.tool
 
 
-def get_available_tools() -> List[str]:
+def get_available_tools() -> list[str]:
     """Return list of screenshot tools available on this system."""
     capture = ScreenshotCapture.__new__(ScreenshotCapture)
     return [
-        tool for tool in ScreenshotCapture.TOOLS.keys() if capture._tool_available(tool)
+        tool for tool in ScreenshotCapture.TOOLS if capture._tool_available(tool)
     ]
