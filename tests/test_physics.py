@@ -2,9 +2,10 @@
 Tests for physics pattern matching and solving.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -59,8 +60,9 @@ class TestPhysicsPatternLibrary:
 
     def test_formula_sympy_expr(self):
         """Test that formulas generate valid SymPy expressions."""
-        from src.classification.physics_patterns import PhysicsPatternLibrary
         import sympy as sp
+
+        from src.classification.physics_patterns import PhysicsPatternLibrary
 
         library = PhysicsPatternLibrary()
         formula = library.get_by_id("einstein_mass_energy")
@@ -73,8 +75,9 @@ class TestPhysicsPatternLibrary:
 
     def test_pattern_match_exact(self):
         """Test exact pattern matching."""
-        from src.classification.physics_patterns import PhysicsPatternLibrary
         import sympy as sp
+
+        from src.classification.physics_patterns import PhysicsPatternLibrary
 
         library = PhysicsPatternLibrary()
 
@@ -90,8 +93,9 @@ class TestPhysicsPatternLibrary:
 
     def test_pattern_match_different_symbols(self):
         """Test pattern matching with different symbol names."""
-        from src.classification.physics_patterns import PhysicsPatternLibrary
         import sympy as sp
+
+        from src.classification.physics_patterns import PhysicsPatternLibrary
 
         library = PhysicsPatternLibrary()
 
@@ -114,10 +118,10 @@ class TestPhysicsSolver:
 
     def test_solver_can_solve_physics(self):
         """Test that physics solver can handle physics equations."""
-        from src.classification.physics_patterns import PhysicsPatternLibrary
-        from src.solvers.physics_solver import PhysicsSolver
-        from src.models import Equation, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType
+        from src.solvers.physics_solver import PhysicsSolver
 
         solver = PhysicsSolver()
 
@@ -135,9 +139,10 @@ class TestPhysicsSolver:
 
     def test_solve_for_mass(self):
         """Test solving E=mc² for mass."""
-        from src.solvers.physics_solver import PhysicsSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.physics_solver import PhysicsSolver
 
         solver = PhysicsSolver()
 
@@ -155,15 +160,17 @@ class TestPhysicsSolver:
 
         assert result.success
         assert result.solution is not None
-        # m = E / c^2
-        assert result.solution.symbolic_result is not None
         assert str(result.solution.target_variable) == "m"
+        # The result must be m = E / c^2, not merely non-None.
+        assert result.solution.symbolic_result is not None
+        assert sp.simplify(result.solution.symbolic_result - E / c**2) == 0
 
     def test_solve_with_numerical_values(self):
         """Test numerical evaluation with constant substitution."""
-        from src.solvers.physics_solver import PhysicsSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.physics_solver import PhysicsSolver
 
         solver = PhysicsSolver()
 
@@ -189,9 +196,10 @@ class TestPhysicsSolver:
 
     def test_solve_generates_steps(self):
         """Test that solution includes step-by-step explanation."""
-        from src.solvers.physics_solver import PhysicsSolver
-        from src.models import Equation, SolveRequest, EquationType
         import sympy as sp
+
+        from src.models import Equation, EquationType, SolveRequest
+        from src.solvers.physics_solver import PhysicsSolver
 
         solver = PhysicsSolver()
 
@@ -242,9 +250,10 @@ class TestClassifierPhysicsIntegration:
 
     def test_classifies_physics_formula(self):
         """Test that classifier identifies physics formulas."""
+        import sympy as sp
+
         from src.classification.classifier import EquationClassifier
         from src.models import Equation, EquationType
-        import sympy as sp
 
         classifier = EquationClassifier()
 
@@ -260,9 +269,10 @@ class TestClassifierPhysicsIntegration:
 
     def test_stores_match_for_solver(self):
         """Test that classifier stores match for solver use."""
-        from src.classification.classifier import EquationClassifier
-        from src.models import Equation, EquationType
         import sympy as sp
+
+        from src.classification.classifier import EquationClassifier
+        from src.models import Equation
 
         classifier = EquationClassifier()
 
@@ -279,9 +289,10 @@ class TestClassifierPhysicsIntegration:
 
     def test_non_physics_still_works(self):
         """Test that non-physics equations still classify correctly."""
+        import sympy as sp
+
         from src.classification.classifier import EquationClassifier
         from src.models import Equation, EquationType
-        import sympy as sp
 
         classifier = EquationClassifier()
 
@@ -356,7 +367,7 @@ class TestUnitsHandler:
 
     def test_convenience_functions(self):
         """Test module-level convenience functions."""
-        from src.utils.units import parse_value, are_compatible
+        from src.utils.units import parse_value
 
         value = parse_value("100 m")
         assert value is not None
