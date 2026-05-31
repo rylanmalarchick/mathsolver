@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mathsolver"
-version = "0.4.0"
+dynamic = ["version"]
 description = "Fast, offline, Linux-native GUI application for solving mathematical equations"
 readme = "README.md"
 license = {text = "MIT"}
@@ -33,6 +33,7 @@ classifiers = [
 
 dependencies = [
     "sympy>=1.12",
+    "antlr4-python3-runtime>=4.11",
     "numpy>=1.24.0",
     "scipy>=1.11.0",
     "Pillow>=10.0.0",
@@ -75,6 +76,9 @@ Repository = "https://github.com/mathsolver/mathsolver"
 Documentation = "https://github.com/mathsolver/mathsolver#readme"
 Issues = "https://github.com/mathsolver/mathsolver/issues"
 
+[tool.setuptools.dynamic]
+version = {attr = "src.__version__"}
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
@@ -93,8 +97,22 @@ line-length = 88
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]  # Line length handled by formatter
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "BLE001", "TRY002", "TRY400"]
+# E501 (line length) handled by the formatter. TRY003 is intentionally not
+# selected: this code raises typed errors with descriptive messages, which the
+# rule would penalize.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# These packages wrap sympy, the LaTeX parser, Qt, and subprocess, all of which
+# raise arbitrary exception types. A broad catch that degrades gracefully or
+# re-wraps into a typed error is the deliberate pattern here, so BLE001 is not
+# enforced. It stays active in src/utils, src/input, and the top-level modules
+# to catch new blind excepts where the failing exception is knowable.
+"src/solvers/*" = ["BLE001"]
+"src/gui/*" = ["BLE001"]
+"src/output/*" = ["BLE001"]
+"src/classification/*" = ["BLE001"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]

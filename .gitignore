@@ -24,9 +24,8 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
+# PyInstaller (mathsolver.spec is tracked intentionally)
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
