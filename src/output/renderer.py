@@ -4,8 +4,12 @@ Math rendering for the GUI.
 Provides LaTeX rendering via matplotlib or MathJax (QtWebEngine).
 """
 
-from typing import Optional
+from typing import TYPE_CHECKING
+
 import sympy as sp
+
+if TYPE_CHECKING:
+    from PyQt6.QtGui import QPixmap
 
 
 class MathRenderer:
@@ -52,9 +56,9 @@ class MathRenderer:
         import matplotlib
 
         matplotlib.use("Agg")  # Non-GUI backend
-        import matplotlib.pyplot as plt
-        from matplotlib.backends.backend_agg import FigureCanvasAgg
         import io
+
+        import matplotlib.pyplot as plt
 
         # Create figure
         fig = plt.figure(figsize=(8, 1))
@@ -101,7 +105,6 @@ class MathRenderer:
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async
             src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
@@ -147,7 +150,6 @@ class MathRenderer:
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async
             src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>

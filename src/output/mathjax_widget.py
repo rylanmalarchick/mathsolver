@@ -5,35 +5,30 @@ Provides beautiful mathematical rendering using MathJax with QtWebEngine.
 Falls back to matplotlib rendering if WebEngine is not available.
 """
 
-from typing import List, Optional
-from pathlib import Path
 import html
 
 # Try to import PyQt6 WebEngine
 try:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWebChannel import QWebChannel
 
     WEBENGINE_AVAILABLE = True
 except ImportError:
     WEBENGINE_AVAILABLE = False
     QWebEngineView = None
 
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
-    QScrollArea,
-    QFrame,
     QPushButton,
-    QSizePolicy,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QUrl, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from ..models import SolutionStep
-
 
 # MathJax HTML template (loads from CDN, or can be bundled locally)
 MATHJAX_TEMPLATE = """
@@ -126,7 +121,7 @@ MATHJAX_TEMPLATE = """
             }}
         }};
     </script>
-    <script id="MathJax-script" async 
+    <script id="MathJax-script" async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
 </head>
@@ -141,14 +136,14 @@ MATHJAX_TEMPLATE = """
                 step.classList.toggle('collapsed');
             }}
         }}
-        
+
         function collapseAll() {{
             var steps = document.querySelectorAll('.step:not(.final-result)');
             steps.forEach(function(step) {{
                 step.classList.add('collapsed');
             }});
         }}
-        
+
         function expandAll() {{
             var steps = document.querySelectorAll('.step');
             steps.forEach(function(step) {{
@@ -197,7 +192,7 @@ class MathJaxRenderer:
 
     def render_steps(
         self,
-        steps: List[SolutionStep],
+        steps: list[SolutionStep],
         collapsible: bool = True,
         show_final_only: bool = False,
     ) -> str:
@@ -275,10 +270,7 @@ class MathJaxRenderer:
         Returns:
             HTML document with equation
         """
-        if display:
-            math_content = f"\\[{latex}\\]"
-        else:
-            math_content = f"\\({latex}\\)"
+        math_content = f"\\[{latex}\\]" if display else f"\\({latex}\\)"
 
         content = f'<div class="equation-box">{math_content}</div>'
 
@@ -333,7 +325,7 @@ class MathJaxWidget(QWidget):
 
     def display_steps(
         self,
-        steps: List[SolutionStep],
+        steps: list[SolutionStep],
         collapsible: bool = True,
         show_final_only: bool = False,
     ):
@@ -413,7 +405,7 @@ class CollapsibleStepsWidget(QWidget):
     def __init__(self, parent=None, dark_mode: bool = False):
         super().__init__(parent)
 
-        self._steps: List[SolutionStep] = []
+        self._steps: list[SolutionStep] = []
         self._show_final_only = False
 
         self._init_ui(dark_mode)
@@ -448,7 +440,7 @@ class CollapsibleStepsWidget(QWidget):
         self.mathjax_widget = MathJaxWidget(dark_mode=dark_mode)
         layout.addWidget(self.mathjax_widget)
 
-    def set_steps(self, steps: List[SolutionStep]):
+    def set_steps(self, steps: list[SolutionStep]):
         """Set the solution steps to display."""
         self._steps = steps
         self._refresh_display()
