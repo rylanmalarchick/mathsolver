@@ -2,7 +2,7 @@
 
 **Offline equation solver with OCR and symbolic computation for Linux.**
 
-Capture equations via screenshot or LaTeX input, get step-by-step symbolic solutions. Optimized for physics and computational math coursework. Zero network calls, zero AI querying - pure algorithmic routing.
+Capture equations via screenshot or LaTeX input, get step-by-step symbolic solutions. Optimized for physics and computational math coursework. Solving is pure algorithmic routing - zero AI querying. The default matplotlib render backend makes no network calls; the optional MathJax (QtWebEngine) backend loads MathJax from a CDN unless you vendor the assets locally.
 
 ## Features
 
@@ -74,7 +74,7 @@ python main.py --search "energy"
 
 - General algebraic equations
 - Polynomial equations
-- Physics formulas (62 templates)
+- Physics formulas (72 templates)
 - Ordinary differential equations (ODEs)
 - Calculus (derivatives, integrals, limits, series)
 - Trigonometric equations
